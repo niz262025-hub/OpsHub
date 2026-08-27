@@ -1,0 +1,23 @@
+@import 'tailwindcss';
+
+:root {
+  --ink: #17221f;
+  --muted: #60716b;
+  --paper: #f5f3ed;
+  --accent: #d95d39;
+  --line: #d8ddd5;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: radial-gradient(circle at 80% 10%, #e6eadc 0, transparent 35%), var(--paper);
+  color: var(--ink);
+  font-family: Georgia, 'Times New Roman', serif;
+}
+.shell { min-height: 100vh; padding: 12vh 8vw; max-width: 900px; }
+.eyebrow { color: var(--accent); font: 700 0.75rem/1.2 ui-monospace, SFMono-Regular, monospace; letter-spacing: 0.12em; }
+h1 { max-width: 720px; margin: 2rem 0 1.25rem; font-size: clamp(3.5rem, 10vw, 7.5rem); line-height: 0.92; font-weight: 400; }
+.intro { max-width: 30rem; color: var(--muted); font-size: 1.25rem; line-height: 1.5; }
+.status { display: inline-flex; align-items: center; gap: 0.6rem; margin-top: 3rem; border-top: 1px solid var(--line); padding-top: 1rem; font: 700 0.8rem/1 ui-monospace, SFMono-Regular, monospace; text-transform: uppercase; }
+.status-dot { width: 0.55rem; height: 0.55rem; border-radius: 50%; background: #3d8f68; }
