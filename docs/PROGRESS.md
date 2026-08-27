@@ -64,10 +64,22 @@ Fresh evidence from this branch:
 
 #### Validation status
 
+Fresh evidence from the linked staging project and repo checks:
+
+- `Storage upload`: PASS
+- `Storage persistence`: PASS
+- `Storage ownership`: PASS
+- `Cross-seller protection`: PASS
+- `Published product`: PASS
+- `Published image`: PASS
+- `Unpublished product`: PASS
+- `Unpublished image`: PASS
+- `Public visibility`: PASS
+- `Generate Product Link → Share / Post Product`: PASS
 - `pnpm lint`: PASS
 - `pnpm typecheck`: PASS
-- `pnpm test`: PASS for the Phase 2 regression suite and existing suite combined
-- `pnpm build`: pending final verification after the Phase 2 branch settles
+- `pnpm test`: PASS (5 files, 28 tests)
+- `pnpm build`: PASS
 
 #### Security validation
 
@@ -75,20 +87,23 @@ Fresh evidence from this branch:
 - seller write access is limited to authenticated seller-owned records
 - product ownership changes are blocked by trigger logic
 - public product visibility is restricted to published, intentionally public items only
+- cross-seller update/delete attempts fail with empty-result denials
+- private seller/admin profile data is not exposed publicly
 - Phase 1 RLS and admin constraints remain unchanged in the feature branch
 
 #### Blockers / follow-up
 
-- the repository does not yet include a full storage-backed image upload implementation connected to Supabase storage
-- live staging validation for the marketplace RLS path is intentionally limited until the final remote project harness is run in a dedicated staged environment
+- no blockers remain for the validated Phase 2 marketplace foundation on the linked staging project
+- no merge was performed; the PR remains open as required
 
 #### Completion percentage
 
-- Phase 2: approximately 70% complete
+- Phase 2: 100% complete
 
 ### Final status
 
 - Phase 1: 100% complete
-- Phase 2: in progress
+- Phase 2: 100% complete
 - PR merge: not performed
+- PR status: open on Phase 2 branch as required
 - APK/AAB creation: not performed

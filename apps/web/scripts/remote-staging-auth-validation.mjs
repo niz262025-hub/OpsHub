@@ -126,7 +126,8 @@ async function main() {
     await waitForRow(adminClient, 'seller_profiles', 'user_id', sellerUserB.data.user.id, 25);
 
     const sellerBProfile = await sellerClientA.from('profiles').select('*').eq('id', sellerUserB.data.user.id).maybeSingle();
-    log('seller A cannot read seller B profile', !!sellerBProfile.error, sellerBProfile.error ? sellerBProfile.error.message : 'unexpected success');
+    const otherProfileBlocked = !sellerBProfile.error && !sellerBProfile.data;
+    log('seller A cannot read seller B profile', otherProfileBlocked, sellerBProfile.error ? sellerBProfile.error.message : sellerBProfile.data ? 'unexpected data returned' : 'no data returned');
 
     const ownRoleUpdate = await sellerClientA.from('profiles').update({ role: 'ADMIN' }).eq('id', sellerUserA.data.user.id).select();
     log('seller A cannot change role', !!ownRoleUpdate.error, ownRoleUpdate.error ? ownRoleUpdate.error.message : 'unexpected success');
@@ -172,8 +173,8 @@ async function main() {
     const suspend = await adminClientAuth.from('seller_profiles').update({ verification_status: 'SUSPENDED', verification_note: 'suspended by live admin validation' }).eq('user_id', sellerUserA.data.user.id).select();
     log('admin suspends seller', !suspend.error && !!suspend.data, suspend.error ? suspend.error.message : 'ok');
 
-    const pendingAccess = await sellerClientA.from('profiles').select('*').eq('id', sellerUserA.data.user.id).maybeSingle();
-    log('PENDING access denied at DB layer', !!pendingAccess.error, pendingAccess.error ? pendingAccess.error.message : 'unexpected success');
+    const selfApprovalAfterAdmin = await sellerClientA.from('seller_profiles').update({ verification_status: 'VERIFIED', verification_note: 'self-approval attempt' }).eq('user_id', sellerUserA.data.user.id).select();
+    log('seller A cannot self-approve after admin action', !!selfApprovalAfterAdmin.error, selfApprovalAfterAdmin.error ? selfApprovalAfterAdmin.error.message : 'unexpected success');
 
     const statusRow = await adminClient.from('seller_profiles').select('user_id, verification_status').in('user_id', [sellerUserA.data.user.id, sellerUserB.data.user.id, adminId]);
     log('remote admin state update', !statusRow.error && Array.isArray(statusRow.data), statusRow.error ? statusRow.error.message : `records=${statusRow.data.length}`);

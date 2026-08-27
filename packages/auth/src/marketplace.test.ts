@@ -8,8 +8,10 @@ const migrationSql = readFileSync(
 
 describe('phase 2 marketplace foundation', () => {
   it('adds the locked product status and source enums', () => {
-    expect(migrationSql).toContain("create type if not exists public.product_status as enum ('DRAFT', 'PUBLISHED', 'ARCHIVED')");
-    expect(migrationSql).toContain("create type if not exists public.product_source as enum ('OWNED', 'WHOLESALER', 'MANUFACTURER', 'DROP_SHIP')");
+    expect(migrationSql).toContain("if not exists (select 1 from pg_type where typname = 'product_status')");
+    expect(migrationSql).toContain("create type public.product_status as enum ('DRAFT', 'PUBLISHED', 'ARCHIVED')");
+    expect(migrationSql).toContain("if not exists (select 1 from pg_type where typname = 'product_source')");
+    expect(migrationSql).toContain("create type public.product_source as enum ('OWNED', 'WHOLESALER', 'MANUFACTURER', 'DROP_SHIP')");
   });
 
   it('creates the product and product image tables with owner references', () => {
@@ -37,5 +39,13 @@ describe('phase 2 marketplace foundation', () => {
     expect(migrationSql).toContain('price numeric(12,2) not null');
     expect(migrationSql).toContain('quantity integer not null');
     expect(migrationSql).toContain('image_url text');
+  });
+
+  it('adds the storage bucket and seller-owned image policies', () => {
+    expect(migrationSql).toContain("insert into storage.buckets (id, name, public)");
+    expect(migrationSql).toContain("marketplace-product-images");
+    expect(migrationSql).toContain("create policy \"marketplace_product_images_insert_own\"");
+    expect(migrationSql).toContain("split_part(name, '/', 1) = auth.uid()::text");
+    expect(migrationSql).toContain("p.status = 'PUBLISHED'");
   });
 });

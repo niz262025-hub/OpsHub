@@ -1,7 +1,18 @@
 create extension if not exists "pgcrypto";
 
-create type if not exists public.product_status as enum ('DRAFT', 'PUBLISHED', 'ARCHIVED');
-create type if not exists public.product_source as enum ('OWNED', 'WHOLESALER', 'MANUFACTURER', 'DROP_SHIP');
+do $$
+begin
+  if not exists (select 1 from pg_type where typname = 'product_status') then
+    create type public.product_status as enum ('DRAFT', 'PUBLISHED', 'ARCHIVED');
+  end if;
+end $$;
+
+do $$
+begin
+  if not exists (select 1 from pg_type where typname = 'product_source') then
+    create type public.product_source as enum ('OWNED', 'WHOLESALER', 'MANUFACTURER', 'DROP_SHIP');
+  end if;
+end $$;
 
 create or replace function public.user_is_verified_seller(p_user_id uuid)
 returns boolean
@@ -118,6 +129,10 @@ create table if not exists public.product_images (
   updated_at timestamptz not null default now()
 );
 
+insert into storage.buckets (id, name, public)
+values ('marketplace-product-images', 'marketplace-product-images', false)
+on conflict (id) do nothing;
+
 create or replace function public.products_set_updated_at()
 returns trigger
 language plpgsql
@@ -175,7 +190,6 @@ create policy "products_update_own" on public.products
 for update using (auth.uid() = seller_id)
 with check (
   auth.uid() = seller_id and
-  seller_id = old.seller_id and
   public.user_is_verified_seller(auth.uid())
 );
 
@@ -211,7 +225,6 @@ create policy "product_images_update_own" on public.product_images
 for update using (auth.uid() = seller_id)
 with check (
   auth.uid() = seller_id and
-  seller_id = old.seller_id and
   exists (
     select 1
     from public.products p
@@ -222,3 +235,46 @@ with check (
 
 create policy "product_images_delete_own" on public.product_images
 for delete using (auth.uid() = seller_id);
+
+create policy "marketplace_product_images_select_public" on storage.objects
+for select using (
+  bucket_id = 'marketplace-product-images' and exists (
+    select 1
+    from public.product_images pi
+    join public.products p on p.id = pi.product_id
+    where pi.storage_path = storage.objects.name
+      and p.status = 'PUBLISHED'
+      and p.is_public = true
+  )
+);
+
+create policy "marketplace_product_images_select_own_or_admin" on storage.objects
+for select using (
+  bucket_id = 'marketplace-product-images' and (
+    split_part(name, '/', 1) = auth.uid()::text
+    or user_is_active_admin()
+  )
+);
+
+create policy "marketplace_product_images_insert_own" on storage.objects
+for insert with check (
+  bucket_id = 'marketplace-product-images' and
+  auth.uid() is not null and
+  split_part(name, '/', 1) = auth.uid()::text
+);
+
+create policy "marketplace_product_images_update_own" on storage.objects
+for update using (
+  bucket_id = 'marketplace-product-images' and
+  split_part(name, '/', 1) = auth.uid()::text
+)
+with check (
+  bucket_id = 'marketplace-product-images' and
+  split_part(name, '/', 1) = auth.uid()::text
+);
+
+create policy "marketplace_product_images_delete_own" on storage.objects
+for delete using (
+  bucket_id = 'marketplace-product-images' and
+  split_part(name, '/', 1) = auth.uid()::text
+);
