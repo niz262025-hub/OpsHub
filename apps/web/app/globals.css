@@ -21,3 +21,175 @@ h1 { max-width: 720px; margin: 2rem 0 1.25rem; font-size: clamp(3.5rem, 10vw, 7.
 .intro { max-width: 30rem; color: var(--muted); font-size: 1.25rem; line-height: 1.5; }
 .status { display: inline-flex; align-items: center; gap: 0.6rem; margin-top: 3rem; border-top: 1px solid var(--line); padding-top: 1rem; font: 700 0.8rem/1 ui-monospace, SFMono-Regular, monospace; text-transform: uppercase; }
 .status-dot { width: 0.55rem; height: 0.55rem; border-radius: 50%; background: #3d8f68; }
+
+.marketplace-shell {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 3rem 1rem 4rem;
+}
+.marketplace-shell.narrow { max-width: 980px; }
+.marketplace-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.5rem 0.8rem;
+  background: rgba(217, 93, 57, 0.08);
+  color: var(--ink);
+  font: 700 0.8rem/1 ui-monospace, SFMono-Regular, monospace;
+  text-transform: uppercase;
+}
+.marketplace-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 420px) minmax(0, 1fr);
+  gap: 1.5rem;
+}
+.panel {
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 1.25rem;
+  box-shadow: 0 14px 30px rgba(23, 34, 31, 0.05);
+}
+.product-form {
+  display: grid;
+  gap: 1rem;
+}
+.product-form label,
+.product-form input,
+.product-form textarea,
+.product-form select,
+.product-form button,
+.product-card,
+.product-detail-actions a,
+.product-detail-actions button,
+.share-links a,
+.product-actions a,
+.product-actions button {
+  font: inherit;
+}
+.product-form label {
+  display: grid;
+  gap: 0.45rem;
+  color: var(--ink);
+  font-weight: 600;
+}
+.product-form input,
+.product-form textarea,
+.product-form select {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.8rem 0.9rem;
+  background: #fff;
+  color: var(--ink);
+}
+.product-form button,
+.product-detail-actions button,
+.product-actions button {
+  border: none;
+  border-radius: 12px;
+  background: var(--accent);
+  color: white;
+  padding: 0.8rem 1rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.two-col {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+.product-list {
+  display: grid;
+  gap: 1rem;
+}
+.product-card {
+  display: grid;
+  grid-template-columns: 160px minmax(0, 1fr);
+  gap: 1rem;
+  padding: 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(255,255,255,0.8);
+}
+.product-card img,
+.product-detail-image {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 14px;
+  display: block;
+}
+.product-card-body {
+  display: grid;
+  gap: 0.6rem;
+}
+.product-card-heading,
+.product-meta,
+.product-actions,
+.product-detail-actions,
+.share-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+.product-card-heading {
+  justify-content: space-between;
+}
+.product-meta { color: var(--muted); font-size: 0.9rem; }
+.product-actions a,
+.product-detail-actions a,
+.share-links a {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.42rem 0.7rem;
+  color: var(--ink);
+  text-decoration: none;
+  background: rgba(255,255,255,0.7);
+}
+.product-detail {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+.product-detail-image-wrap { width: 100%; }
+.product-detail-image { height: 420px; }
+.price-row { font-size: 2rem; margin: 0.5rem 0; }
+.status-row, .description { color: var(--muted); line-height: 1.6; }
+.share-banner { margin-top: 1.5rem; }
+.share-banner p { overflow-wrap: anywhere; }
+
+@media (max-width: 820px) {
+  .marketplace-grid,
+  .product-detail,
+  .two-col,
+  .product-card {
+    grid-template-columns: 1fr;
+  }
+  .marketplace-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .marketplace-shell {
+    padding: 2rem 0.8rem 3rem;
+  }
+  .product-card img,
+  .product-detail-image { height: 240px; }
+}
+
+@media (max-width: 480px) {
+  body { font-size: 16px; }
+  .panel { padding: 1rem; border-radius: 18px; }
+  .product-actions, .product-detail-actions, .share-links { flex-direction: column; align-items: stretch; }
+  .product-detail-actions a, .product-detail-actions button, .share-links a, .product-actions a, .product-actions button { width: 100%; text-align: center; }
+}

@@ -42,9 +42,53 @@ Fresh evidence from this branch:
 - Follow-up fix migration included in the branch: `supabase/migrations/202608270002_phase1_auth_fix.sql`
 - The final RLS/admin fix is present in the current branch and was validated against the live staging database.
 
+### Phase 2 marketplace foundation
+
+#### Scope
+
+- add the minimum marketplace data model for products and product images
+- implement product ownership and seller isolation
+- support product source, status, publication, and sharing flow
+- add a public customer-facing product page with strict visibility rules
+- keep the existing Phase 1 auth/security model intact
+
+#### Completed work
+
+- added a marketplace migration at `supabase/migrations/202608270003_marketplace_foundation.sql`
+- introduced product and product-image tables with owner checks and immutable ownership protection
+- added product status/source enums, public publishing rules, and seller-only management policies
+- added a product sharing helper and a public product route for published items
+- added marketplace product management and detail screens for seller flow
+- added baseline responsive CSS for product management and public product views
+- added regression coverage for marketplace enum, ownership, and visibility constraints
+
+#### Validation status
+
+- `pnpm lint`: PASS
+- `pnpm typecheck`: PASS
+- `pnpm test`: PASS for the Phase 2 regression suite and existing suite combined
+- `pnpm build`: pending final verification after the Phase 2 branch settles
+
+#### Security validation
+
+- no service-role key is imported into browser code
+- seller write access is limited to authenticated seller-owned records
+- product ownership changes are blocked by trigger logic
+- public product visibility is restricted to published, intentionally public items only
+- Phase 1 RLS and admin constraints remain unchanged in the feature branch
+
+#### Blockers / follow-up
+
+- the repository does not yet include a full storage-backed image upload implementation connected to Supabase storage
+- live staging validation for the marketplace RLS path is intentionally limited until the final remote project harness is run in a dedicated staged environment
+
+#### Completion percentage
+
+- Phase 2: approximately 70% complete
+
 ### Final status
 
 - Phase 1: 100% complete
-- Phase 2: blocked and not started
+- Phase 2: in progress
 - PR merge: not performed
 - APK/AAB creation: not performed
