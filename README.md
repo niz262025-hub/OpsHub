@@ -2,7 +2,7 @@
 
 OpsHub is a private verified seller/reseller marketplace and community.
 
-This repository contains the Phase 0 foundation: a pnpm monorepo with a Next.js web app, Expo mobile app, shared TypeScript package boundaries, Supabase directories, and CI quality gates. Product workflows are intentionally not implemented yet.
+This repository now includes the Phase 0 foundation and Phase 1 authentication and seller verification scaffolding. The implementation keeps the app secure by using controlled admin access, seller-only registration, and verification gating without exposing secrets or business rules beyond the core access model.
 
 ## Quick start
 
@@ -14,4 +14,4 @@ pnpm dev
 
 Run the checks with `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `pnpm build`.
 
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and [docs/PROGRESS.md](docs/PROGRESS.md) for boundaries and status.
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/architecture/README.md](docs/architecture/README.md), and [docs/PROGRESS.md](docs/PROGRESS.md) for boundaries and status.

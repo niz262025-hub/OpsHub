@@ -8,14 +8,23 @@
 - Added architecture documentation and GitHub Actions quality workflow.
 - Added runnable web and mobile foundation screens.
 
+## Phase 1 Authentication and verification
+
+- Added auth policy helpers for role, account, and seller status checks.
+- Added seller access and verification constraints with prevention of role escalation.
+- Added seller registration, login, admin login, verification status, and review screens.
+- Added Supabase auth-ready schema and RLS foundation with `profiles` and `seller_profiles`.
+- Added secure database trigger and Edge Function placeholder boundaries.
+
 ## Verification
 
 - Tests performed: `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`, and Expo config validation.
 - Build result: passed; Next.js production build completed successfully.
-- Known blockers: Supabase project credentials and CLI setup are intentionally not configured in Phase 0.
+- Known blockers: real Supabase project values and production admin bootstrap are intentionally not configured in local Phase 1 scaffolding.
 - Phase 0: 100%
-- Overall project: 10%
+- Phase 1: 100%
+- Overall project: 20%
 
 ## Next
 
-Define product requirements and domain contracts before implementing marketplace, community, identity, payments, or verification workflows.
+Connect the app to a real Supabase project, add actual server-side auth flows, and define the first marketplace access gate after seller verification is complete.
