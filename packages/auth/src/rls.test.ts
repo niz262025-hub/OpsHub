@@ -14,10 +14,12 @@ describe('phase 1 database and rls foundation', () => {
     expect(migrationSql).toContain('user_id uuid not null unique references public.profiles(id) on delete cascade');
   });
 
-  it('forces seller-created records to pending and keeps them from changing through the seller policy', () => {
+  it('forces seller-created records to pending and prevents direct seller verification mutations', () => {
     expect(migrationSql).toContain("verification_status = 'PENDING'");
-    expect(migrationSql).toContain("verification_status = old.verification_status");
-    expect(migrationSql).toContain("verification_note = old.verification_note");
+    expect(migrationSql).toContain("if tg_op = 'INSERT' and new.verification_status <> 'PENDING'");
+    expect(migrationSql).toContain("Only an active admin may change seller verification status");
+    expect(migrationSql).toContain("verification_note is null");
+    expect(migrationSql).toContain("new.verification_status <> 'PENDING'");
   });
 
   it('requires admin-only seller verification actions and blocks scalar privilege escalation', () => {
@@ -25,6 +27,16 @@ describe('phase 1 database and rls foundation', () => {
     expect(migrationSql).toContain('admins_manage_seller_verification');
     expect(migrationSql).toContain("auth.uid() = user_id and\n  verification_status = 'PENDING'");
     expect(migrationSql).toContain('role = \'SELLER\'');
+    expect(migrationSql).toContain("raise exception 'Only an active admin may change profile role'");
+    expect(migrationSql).toContain("raise exception 'Only an active admin may change account status'");
+  });
+
+  it('rejects the forbidden seller privilege escalations in database policy and trigger logic', () => {
+    expect(migrationSql).toContain("new.verification_status <> 'PENDING'");
+    expect(migrationSql).toContain("raise exception 'Only an active admin may change seller verification status'");
+    expect(migrationSql).toContain("raise exception 'Only an active admin may change profile role'");
+    expect(migrationSql).toContain("raise exception 'Only an active admin may change account status'");
+    expect(migrationSql).toContain("auth.uid() = user_id and\n  verification_status = 'PENDING'");
   });
 
   it('enables row-level security on both critical tables', () => {
