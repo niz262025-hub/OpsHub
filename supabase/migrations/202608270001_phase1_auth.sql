@@ -98,6 +98,21 @@ begin
 end;
 $$;
 
+create or replace function public.user_is_active_admin()
+returns boolean
+language sql
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1
+    from public.profiles p
+    where p.id = auth.uid()
+      and p.role = 'ADMIN'
+      and p.account_status = 'ACTIVE'
+  );
+$$;
+
 create or replace function public.enforce_profile_security()
 returns trigger
 language plpgsql
@@ -115,25 +130,13 @@ begin
     end if;
 
     if new.role is distinct from old.role then
-      if not exists (
-        select 1
-        from public.profiles p
-        where p.id = auth.uid()
-          and p.role = 'ADMIN'
-          and p.account_status = 'ACTIVE'
-      ) then
+      if not public.user_is_active_admin() then
         raise exception 'Only an active admin may change profile role';
       end if;
     end if;
 
     if new.account_status is distinct from old.account_status then
-      if not exists (
-        select 1
-        from public.profiles p
-        where p.id = auth.uid()
-          and p.role = 'ADMIN'
-          and p.account_status = 'ACTIVE'
-      ) then
+      if not public.user_is_active_admin() then
         raise exception 'Only an active admin may change account status';
       end if;
     end if;
@@ -195,12 +198,7 @@ create policy "profiles_select_own" on public.profiles
 for select using (auth.uid() = id);
 
 create policy "profiles_select_admin" on public.profiles
-for select using (
-  exists (
-    select 1 from public.profiles p
-    where p.id = auth.uid() and p.role = 'ADMIN' and p.account_status = 'ACTIVE'
-  )
-);
+for select using (user_is_active_admin());
 
 create policy "profiles_update_self" on public.profiles
 for update using (auth.uid() = id)
@@ -213,17 +211,9 @@ with check (
 );
 
 create policy "profiles_admin_update" on public.profiles
-for update using (
-  exists (
-    select 1 from public.profiles p
-    where p.id = auth.uid() and p.role = 'ADMIN' and p.account_status = 'ACTIVE'
-  )
-)
+for update using (user_is_active_admin())
 with check (
-  exists (
-    select 1 from public.profiles p
-    where p.id = auth.uid() and p.role = 'ADMIN' and p.account_status = 'ACTIVE'
-  ) and
+  user_is_active_admin() and
   role in ('SELLER', 'ADMIN') and
   account_status in ('ACTIVE', 'SUSPENDED')
 );
@@ -232,12 +222,7 @@ create policy "seller_profiles_select_own" on public.seller_profiles
 for select using (auth.uid() = user_id);
 
 create policy "seller_profiles_select_admin" on public.seller_profiles
-for select using (
-  exists (
-    select 1 from public.profiles p
-    where p.id = auth.uid() and p.role = 'ADMIN' and p.account_status = 'ACTIVE'
-  )
-);
+for select using (user_is_active_admin());
 
 create policy "seller_profiles_update_own" on public.seller_profiles
 for update using (auth.uid() = user_id)
@@ -253,17 +238,9 @@ with check (
 );
 
 create policy "admins_manage_seller_verification" on public.seller_profiles
-for update using (
-  exists (
-    select 1 from public.profiles p
-    where p.id = auth.uid() and p.role = 'ADMIN' and p.account_status = 'ACTIVE'
-  )
-)
+for update using (user_is_active_admin())
 with check (
-  exists (
-    select 1 from public.profiles p
-    where p.id = auth.uid() and p.role = 'ADMIN' and p.account_status = 'ACTIVE'
-  ) and
+  user_is_active_admin() and
   verification_status in ('PENDING', 'VERIFIED', 'REJECTED', 'SUSPENDED')
 );
 

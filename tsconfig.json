@@ -3,6 +3,7 @@
   "references": [
     { "path": "packages/types" },
     { "path": "packages/utils" },
+    { "path": "packages/auth" },
     { "path": "apps/web" }
   ],
   "compilerOptions": {

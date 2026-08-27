@@ -10,6 +10,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint .",
+    "staging:setup": "node ./scripts/setup-supabase-staging.mjs",
     "test": "vitest run",
     "typecheck": "tsc -b"
   },

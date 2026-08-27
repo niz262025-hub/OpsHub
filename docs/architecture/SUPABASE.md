@@ -13,7 +13,8 @@ Use a local or dev Supabase project for everyday engineering work. Keep all cred
 Typical variables:
 
 - NEXT_PUBLIC_SUPABASE_URL
-- NEXT_PUBLIC_SUPABASE_ANON_KEY
+- NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY (current Supabase naming)
+- NEXT_PUBLIC_SUPABASE_ANON_KEY (legacy compatibility alias)
 - SUPABASE_URL
 - SUPABASE_ANON_KEY
 - SUPABASE_SERVICE_ROLE_KEY
@@ -28,7 +29,8 @@ Use a dedicated Supabase project for staging validation before merge. This envir
 Public/browser variables:
 
 - NEXT_PUBLIC_SUPABASE_URL
-- NEXT_PUBLIC_SUPABASE_ANON_KEY
+- NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY (preferred/current name)
+- NEXT_PUBLIC_SUPABASE_ANON_KEY (legacy compatibility alias)
 
 Server-only variables:
 
