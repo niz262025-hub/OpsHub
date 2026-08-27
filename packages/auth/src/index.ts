@@ -111,10 +111,30 @@ export function sanitizeRoleAssignment(currentRole: UserRole, requestedRole: Use
   return currentRole;
 }
 
+export function forceSellerPendingStatus(): SellerVerificationStatus {
+  return 'PENDING';
+}
+
 export function canUpdateVerificationStatus(actorRole: UserRole | null, action: VerificationAction | string): boolean {
   if (actorRole !== 'ADMIN') return false;
 
   return action === 'APPROVE' || action === 'REJECT' || action === 'SUSPEND';
+}
+
+export function canSellerUpdateOwnProfile(current: Partial<SellerProfileRecord>, next: Partial<SellerProfileRecord>): boolean {
+  if (next.verification_status && next.verification_status !== current.verification_status) {
+    return false;
+  }
+
+  if (next.verification_note && next.verification_note !== current.verification_note) {
+    return false;
+  }
+
+  return true;
+}
+
+export function canAdminReviewSeller(actorRole: UserRole | null, accountStatus: AccountStatus | null): boolean {
+  return actorRole === 'ADMIN' && accountStatus === 'ACTIVE';
 }
 
 export function getAuthSessionState(session?: AuthSessionLike | null): AuthSessionState {
