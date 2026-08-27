@@ -18,13 +18,16 @@
 
 ## Verification
 
-- Tests performed: `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`, and Expo config validation.
+- Repository security checks performed: `grep -RInE "verification_status = old\.verification_status|old\.verification_status" . --exclude-dir=.git --exclude-dir=node_modules` returned no matches.
+- Database contract tests performed: `pnpm test` passed with 3 test files and 18 tests passing.
+- Static verification performed: `pnpm lint`, `pnpm typecheck`, `pnpm test`, and `pnpm build` all passed in the current workspace.
 - Build result: passed; Next.js production build completed successfully.
-- Known blockers: real Supabase project values and production admin bootstrap are intentionally not configured in local Phase 1 scaffolding.
+- Staging connection preparation performed: repository now documents public vs server-side Supabase variables, keeps client config limited to public values, and includes a secret-safe validation script at `node ./scripts/check-supabase-env.mjs`.
+- Known blockers: a real staging Supabase project and secure environment variables are still required before live DB/RLS validation can be executed. No secrets are committed or printed.
 - Phase 0: 100%
-- Phase 1: 100%
+- Phase 1: code-level security fix verified; staging runtime configuration is prepared but live DB execution remains pending a real Supabase project.
 - Overall project: 20%
 
 ## Next
 
-Connect the app to a real Supabase project, add actual server-side auth flows, and define the first marketplace access gate after seller verification is complete.
+Configure a real staging Supabase project, populate the required environment variables securely, and run the Phase 1 migration plus RLS/auth-trigger validation against that staging database before claiming live validation success.

@@ -1,6 +1,8 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
+// Browser-facing public configuration stays in public env vars.
+// Server-only values such as SUPABASE_SERVICE_ROLE_KEY must never be imported into browser or client code.
 export async function createSupabaseServerClient() {
   const cookieStore = await cookies();
 

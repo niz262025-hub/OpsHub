@@ -5,6 +5,7 @@
   "packageManager": "pnpm@10.32.1",
   "scripts": {
     "build": "pnpm --filter @opshub/web build",
+    "check:supabase-env": "node ./scripts/check-supabase-env.mjs",
     "dev": "pnpm --filter @opshub/web dev",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
