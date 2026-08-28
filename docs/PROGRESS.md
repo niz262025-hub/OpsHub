@@ -151,8 +151,33 @@ This means the correct behavior is:
 
 ### Phase 3 completion status
 
-- Phase 3: INCOMPLETE — full live order mutation validation is now understood and corrected in the test harness, but the final remote validation must be rerun with the corrected expectation before any completion claim
+- Phase 3: INCOMPLETE / BLOCKED — full live order mutation validation is verified in the repo and linked staging project, but real payment-provider validation is externally blocked because the required live payment secrets are not configured in the active environment
 - repo validation: PASS
 - staging migration application: PASS
-- remote order lifecycle: UNDER ACTIVE VALIDATION / harness corrected
+- remote order lifecycle: PASS (order creation, inventory, RLS, mutation protection)
 - payment provider validation: BLOCKED
+
+### PHASE 3 EVIDENCE
+
+#### DONE
+- order creation against staging: PASS
+- inventory decrement: PASS
+- order RLS enforcement: PASS
+- order mutation validation: PASS
+- server-side security guard and admin protections: PASS
+- Phase 3 migration set applies cleanly to the linked staging project: PASS
+- repo validation gate: PASS (`pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`)
+
+#### IN PROGRESS
+- real provider payment initiation and live callback validation against `opshub-staging` project ref `iytiyugzmlsofwtortth`
+
+#### BLOCKED
+- payment provider credentials are not present in the active environment for the provider-specific validation path
+- required credential names checked and missing only: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `SQUARE_ACCESS_TOKEN`, `BRAINTREE_MERCHANT_ID`, `BRAINTREE_PUBLIC_KEY`, `BRAINTREE_PRIVATE_KEY`, `BRAINTREE_WEBHOOK_SECRET`, `STRIPE_PUBLISHABLE_KEY`
+- because no real provider credentials are available, real payment initiation, provider confirmation, webhook verification, duplicate callback handling, and money/finance record validation remain blocked
+
+#### LIVE STAGING PASS
+- staging Supabase link and migration push: PASS
+- auth and order security validations against the live staging database: PASS
+- marketplace/order lifecycle checks tied to order creation, inventory, and RLS: PASS
+- payment-provider live validation: BLOCKED by missing provider configuration, not by repository code failure
