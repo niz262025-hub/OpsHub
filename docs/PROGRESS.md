@@ -107,3 +107,39 @@ Fresh evidence from the linked staging project and repo checks:
 - PR merge: not performed
 - PR status: open on Phase 2 branch as required
 - APK/AAB creation: not performed
+
+## Phase 3 — money, orders, and payment foundation
+
+### IMPLEMENTED
+
+- added the Phase 3 schema foundation at `supabase/migrations/202608280001_phase3_orders_payment.sql`
+- added the Phase 3 live fix migration at `supabase/migrations/202608280002_phase3_orders_payment_fix.sql`
+- added order status, payment status, and finance direction helpers in `apps/web/lib/orders.ts`
+- added payment-state utilities in `apps/web/lib/payment.ts`
+- added minimal order and finance pages in `apps/web/app/orders/page.tsx` and `apps/web/app/finance/page.tsx`
+- added regression coverage in `packages/auth/src/orders.test.ts`
+
+### LIVE STAGING VALIDATED
+
+No live order/payment lifecycle checks were able to pass on the remote staging project yet.
+
+Fresh remote evidence:
+
+- `npx supabase@2.116.0 link --project-ref iytiyugzmlsofwtortth && npx supabase@2.116.0 db push` → migration applies successfully to the remote project
+- `pnpm lint && pnpm typecheck && pnpm test && pnpm build` → PASS
+- live order creation against the staging project → FAIL
+- payment provider validation against the staging project → BLOCKED
+
+### BLOCKED
+
+- Staging order creation currently fails with the runtime error: `Seller can only manage their own products`
+- This occurs during the live order path even after the inventory-adjustment guard was added to the product ownership trigger, which means the root cause is still unresolved in the staging deployment path and must be fixed before claiming Phase 3 validation success.
+- Payment provider live validation remains blocked because the environment does not expose a configured provider credential for a verified provider callback or webhook test. The script output for the staging validation states: `PAYMENT PROVIDER LIVE VALIDATION BLOCKED`.
+
+### Phase 3 completion status
+
+- Phase 3: INCOMPLETE — live staging order validation and live payment validation remain blocked
+- repo validation: PASS
+- staging migration application: PASS
+- remote order lifecycle: FAIL / unresolved
+- payment provider validation: BLOCKED

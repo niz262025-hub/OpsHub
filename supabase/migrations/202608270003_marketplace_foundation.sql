@@ -39,6 +39,10 @@ security definer
 set search_path = public
 as $$
 begin
+  if current_setting('app.allow_product_inventory_adjustment', true) = 'true' then
+    return new;
+  end if;
+
   if auth.uid() is null then
     raise exception 'Authentication required';
   end if;
