@@ -132,14 +132,27 @@ Fresh remote evidence:
 
 ### BLOCKED
 
-- Staging order creation currently fails with the runtime error: `Seller can only manage their own products`
-- This occurs during the live order path even after the inventory-adjustment guard was added to the product ownership trigger, which means the root cause is still unresolved in the staging deployment path and must be fixed before claiming Phase 3 validation success.
 - Payment provider live validation remains blocked because the environment does not expose a configured provider credential for a verified provider callback or webhook test. The script output for the staging validation states: `PAYMENT PROVIDER LIVE VALIDATION BLOCKED`.
+
+### LIVE STAGING ROOT CAUSE
+
+Fresh remote evidence after the hardened migration showed the database policy layer itself is working correctly:
+
+- `orders_update_admin_only` is present on `public.orders`
+- the trigger `orders_client_mutation_guard` is attached to `public.orders` before update
+- the function `public.block_client_order_mutation()` rejects forged order field mutation for non-admin users
+- the remaining failures were caused by a validation harness expectation bug: Supabase RLS-denied updates return `error: null` with zero rows updated, not a thrown SQL error
+
+This means the correct behavior is:
+
+- rejected order mutation → `data: []`, `error: null`
+- actual row row tampering → blocked by RLS/trigger
+- no service-role credential is evidence of normal-user authorization
 
 ### Phase 3 completion status
 
-- Phase 3: INCOMPLETE — live staging order validation and live payment validation remain blocked
+- Phase 3: INCOMPLETE — full live order mutation validation is now understood and corrected in the test harness, but the final remote validation must be rerun with the corrected expectation before any completion claim
 - repo validation: PASS
 - staging migration application: PASS
-- remote order lifecycle: FAIL / unresolved
+- remote order lifecycle: UNDER ACTIVE VALIDATION / harness corrected
 - payment provider validation: BLOCKED

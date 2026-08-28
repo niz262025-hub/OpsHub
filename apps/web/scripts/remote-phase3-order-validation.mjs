@@ -247,10 +247,12 @@ async function main() {
     log('customer B does not see customer A order', !buyerBOrders.error && !buyerBOrders.data?.some((row) => row.id === createdOrder.id), buyerBOrders.error ? buyerBOrders.error.message : 'ok');
 
     const tamperTotal = await buyerClientA.from('orders').update({ total: 999999 }).eq('id', createdOrder.id).select();
-    log('customer cannot tamper total', !!tamperTotal.error, tamperTotal.error ? tamperTotal.error.message : 'unexpected success');
+    const tamperTotalBlocked = !tamperTotal.error && Array.isArray(tamperTotal.data) && tamperTotal.data.length === 0;
+    log('customer cannot tamper total', tamperTotalBlocked, tamperTotal.error ? tamperTotal.error.message : `rows=${tamperTotal.data?.length ?? 0} (RLS blocked)`);
 
     const tamperPrice = await buyerClientA.from('orders').update({ unit_price: 1 }).eq('id', createdOrder.id).select();
-    log('customer cannot tamper unit price', !!tamperPrice.error, tamperPrice.error ? tamperPrice.error.message : 'unexpected success');
+    const tamperPriceBlocked = !tamperPrice.error && Array.isArray(tamperPrice.data) && tamperPrice.data.length === 0;
+    log('customer cannot tamper unit price', tamperPriceBlocked, tamperPrice.error ? tamperPrice.error.message : `rows=${tamperPrice.data?.length ?? 0} (RLS blocked)`);
 
     const sellerBEmail = uniqueEmail('seller-order-b');
     const sellerBPass = 'TempPass123!';
@@ -286,7 +288,8 @@ async function main() {
     log('seller B cannot view seller A order', !sellerBOtherOrder.error && sellerBOtherOrder.data?.length === 0, sellerBOtherOrder.error ? sellerBOtherOrder.error.message : 'unexpected data returned');
 
     const sellerBMutation = await sellerClientB.from('orders').update({ order_status: 'PAID', payment_status: 'PAID' }).eq('id', createdOrder.id).select();
-    log('seller B cannot mutate seller A order', !!sellerBMutation.error, sellerBMutation.error ? sellerBMutation.error.message : 'unexpected success');
+    const sellerBMutationBlocked = !sellerBMutation.error && Array.isArray(sellerBMutation.data) && sellerBMutation.data.length === 0;
+    log('seller B cannot mutate seller A order', sellerBMutationBlocked, sellerBMutation.error ? sellerBMutation.error.message : `rows=${sellerBMutation.data?.length ?? 0} (RLS blocked)`);
 
     const adminEmail = uniqueEmail('admin-phase3');
     const adminPass = 'TempPass123!';
