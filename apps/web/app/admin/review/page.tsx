@@ -1,6 +1,8 @@
 'use client';
 
 import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { signOut } from '@/lib/auth';
 import { getSupabaseBrowserClient } from '@/lib/supabase';
 
 type SellerReviewRow = {
@@ -18,8 +20,35 @@ export default function AdminReviewPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [noteDrafts, setNoteDrafts] = useState<Record<string, string>>({});
+  const [loggingOut, setLoggingOut] = useState(false);
 
+  const router = useRouter();
   const supabase = useMemo(() => getSupabaseBrowserClient(), []);
+
+  useEffect(() => {
+    async function ensureAdminAccess() {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
+        router.push('/admin/login');
+        return;
+      }
+
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('role, account_status')
+        .eq('id', sessionData.session.user.id)
+        .maybeSingle();
+
+      if (profileError || profileData?.role !== 'ADMIN' || profileData?.account_status !== 'ACTIVE') {
+        router.push('/admin/login');
+        return;
+      }
+
+      return true;
+    }
+
+    void ensureAdminAccess();
+  }, [router, supabase]);
 
   useEffect(() => {
     async function loadSellers() {
@@ -86,6 +115,19 @@ export default function AdminReviewPage() {
     }
   }
 
+  async function handleSignOut() {
+    setLoggingOut(true);
+    const { error: signOutError } = await signOut();
+    if (signOutError) {
+      setError(signOutError.message);
+      setLoggingOut(false);
+      return;
+    }
+
+    router.push('/admin/login');
+    router.refresh();
+  }
+
   return (
     <main className="admin-shell">
       <header className="admin-header">
@@ -93,6 +135,9 @@ export default function AdminReviewPage() {
           <p className="eyebrow">ADMIN / SELLER REVIEW</p>
           <h1>Seller applications</h1>
         </div>
+        <button type="button" className="secondary-button" onClick={handleSignOut} disabled={loggingOut}>
+          {loggingOut ? 'Signing out...' : 'Sign out'}
+        </button>
       </header>
 
       {error ? <p className="error-message">{error}</p> : null}

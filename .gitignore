@@ -9,3 +9,5 @@ coverage/
 !.env.example
 supabase/.temp/
 .DS_Store
+.vercel
+.env*

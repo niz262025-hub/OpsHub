@@ -4,7 +4,7 @@ import { existsSync, readFileSync } from 'node:fs';
 function loadLocalEnv() {
   const candidates = ['.env.local', '.env'];
   for (const candidate of candidates) {
-    const filePath = new URL(`../../${candidate}`, import.meta.url);
+    const filePath = new URL(`../../../${candidate}`, import.meta.url);
     if (!existsSync(filePath)) continue;
 
     const content = readFileSync(filePath, 'utf8');

@@ -36,6 +36,33 @@ export async function signUpSeller(payload: {
   return { data, error: null };
 }
 
+export async function signUpCustomer(payload: {
+  fullName: string;
+  email: string;
+  password: string;
+  phone?: string | null;
+  preferredName?: string | null;
+}) {
+  const supabase = getSupabaseBrowserClient();
+
+  const { data, error } = await supabase.auth.signUp({
+    email: payload.email,
+    password: payload.password,
+    options: {
+      data: {
+        full_name: payload.fullName,
+        customer_registration: true,
+        phone: payload.phone ?? null,
+        preferred_name: payload.preferredName ?? null,
+      },
+    },
+  });
+
+  if (error) return { data, error };
+
+  return { data, error: null };
+}
+
 export async function signOut() {
   const supabase = getSupabaseBrowserClient();
   return supabase.auth.signOut();
@@ -49,4 +76,45 @@ export async function getSession() {
 export async function getCurrentUser() {
   const supabase = getSupabaseBrowserClient();
   return supabase.auth.getUser();
+}
+
+export async function getCurrentUserProfileRole() {
+  const supabase = getSupabaseBrowserClient();
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+
+  if (userError || !userData.user) {
+    return {
+      role: null,
+      accountStatus: null,
+      verificationStatus: null,
+      error: userError ?? new Error('No authenticated user found'),
+    };
+  }
+
+  const { data: profileData, error: profileError } = await supabase
+    .from('profiles')
+    .select('role, account_status')
+    .eq('id', userData.user.id)
+    .maybeSingle();
+
+  if (profileError) {
+    return { role: null, accountStatus: null, verificationStatus: null, error: profileError };
+  }
+
+  const { data: sellerData, error: sellerError } = await supabase
+    .from('seller_profiles')
+    .select('verification_status')
+    .eq('user_id', userData.user.id)
+    .maybeSingle();
+
+  if (sellerError) {
+    return { role: null, accountStatus: null, verificationStatus: null, error: sellerError };
+  }
+
+  return {
+    role: profileData?.role ?? null,
+    accountStatus: profileData?.account_status ?? null,
+    verificationStatus: sellerData?.verification_status ?? null,
+    error: null,
+  };
 }

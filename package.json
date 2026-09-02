@@ -6,16 +6,20 @@
   "scripts": {
     "build": "pnpm --filter @opshub/web build",
     "check:supabase-env": "node ./scripts/check-supabase-env.mjs",
+    "check:staging-env": "node ./scripts/check-staging-env.mjs",
     "dev": "pnpm --filter @opshub/web dev",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint .",
+    "start": "pnpm --filter @opshub/web start",
     "staging:setup": "node ./scripts/setup-supabase-staging.mjs",
     "test": "vitest run",
+    "test:e2e": "playwright test --config playwright.config.ts",
     "typecheck": "tsc -b"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
+    "@playwright/test": "1.62.1",
     "@types/node": "^24.10.0",
     "eslint": "^9.39.1",
     "eslint-config-next": "^16.0.3",

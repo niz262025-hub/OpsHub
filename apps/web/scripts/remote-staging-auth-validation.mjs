@@ -129,14 +129,24 @@ async function main() {
     const otherProfileBlocked = !sellerBProfile.error && !sellerBProfile.data;
     log('seller A cannot read seller B profile', otherProfileBlocked, sellerBProfile.error ? sellerBProfile.error.message : sellerBProfile.data ? 'unexpected data returned' : 'no data returned');
 
+    const beforeRoleState = await adminClient.from('profiles').select('role').eq('id', sellerUserA.data.user.id).maybeSingle();
+    const beforeStatusState = await adminClient.from('profiles').select('account_status').eq('id', sellerUserA.data.user.id).maybeSingle();
+    const beforeVerificationState = await adminClient.from('seller_profiles').select('verification_status').eq('user_id', sellerUserA.data.user.id).maybeSingle();
+
     const ownRoleUpdate = await sellerClientA.from('profiles').update({ role: 'ADMIN' }).eq('id', sellerUserA.data.user.id).select();
-    log('seller A cannot change role', !!ownRoleUpdate.error, ownRoleUpdate.error ? ownRoleUpdate.error.message : 'unexpected success');
+    const afterRoleState = await adminClient.from('profiles').select('role').eq('id', sellerUserA.data.user.id).maybeSingle();
+    const roleProtected = !!ownRoleUpdate.error || (Array.isArray(ownRoleUpdate.data) ? ownRoleUpdate.data.length === 0 : !ownRoleUpdate.data) && afterRoleState.data?.role === beforeRoleState.data?.role;
+    log('seller A cannot change role', roleProtected, `before=${beforeRoleState.data?.role ?? 'missing'} after=${afterRoleState.data?.role ?? 'missing'} error=${ownRoleUpdate.error?.message ?? 'none'} rows=${Array.isArray(ownRoleUpdate.data) ? ownRoleUpdate.data.length : 0}`);
 
     const ownStatusUpdate = await sellerClientA.from('profiles').update({ account_status: 'SUSPENDED' }).eq('id', sellerUserA.data.user.id).select();
-    log('seller A cannot change account_status', !!ownStatusUpdate.error, ownStatusUpdate.error ? ownStatusUpdate.error.message : 'unexpected success');
+    const afterStatusState = await adminClient.from('profiles').select('account_status').eq('id', sellerUserA.data.user.id).maybeSingle();
+    const statusProtected = !!ownStatusUpdate.error || (Array.isArray(ownStatusUpdate.data) ? ownStatusUpdate.data.length === 0 : !ownStatusUpdate.data) && afterStatusState.data?.account_status === beforeStatusState.data?.account_status;
+    log('seller A cannot change account_status', statusProtected, `before=${beforeStatusState.data?.account_status ?? 'missing'} after=${afterStatusState.data?.account_status ?? 'missing'} error=${ownStatusUpdate.error?.message ?? 'none'} rows=${Array.isArray(ownStatusUpdate.data) ? ownStatusUpdate.data.length : 0}`);
 
     const ownVerificationUpdate = await sellerClientA.from('seller_profiles').update({ verification_status: 'VERIFIED' }).eq('user_id', sellerUserA.data.user.id).select();
-    log('seller A cannot change verification_status', !!ownVerificationUpdate.error, ownVerificationUpdate.error ? ownVerificationUpdate.error.message : 'unexpected success');
+    const afterVerificationState = await adminClient.from('seller_profiles').select('verification_status').eq('user_id', sellerUserA.data.user.id).maybeSingle();
+    const verificationProtected = !!ownVerificationUpdate.error || (Array.isArray(ownVerificationUpdate.data) ? ownVerificationUpdate.data.length === 0 : !ownVerificationUpdate.data) && afterVerificationState.data?.verification_status === beforeVerificationState.data?.verification_status;
+    log('seller A cannot change verification_status', verificationProtected, `before=${beforeVerificationState.data?.verification_status ?? 'missing'} after=${afterVerificationState.data?.verification_status ?? 'missing'} error=${ownVerificationUpdate.error?.message ?? 'none'} rows=${Array.isArray(ownVerificationUpdate.data) ? ownVerificationUpdate.data.length : 0}`);
 
     const adminEmail = uniqueEmail('admin-a');
     const adminPass = 'TempPass123!';

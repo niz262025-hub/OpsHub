@@ -19,6 +19,11 @@ describe('Supabase environment resolution', () => {
     expect(resolveSupabasePublicKey(env)).toBe('publishable-key');
   });
 
+  it('refuses to silently fall back to the placeholder Supabase project', () => {
+    expect(() => resolveSupabaseUrl({})).toThrow(/NEXT_PUBLIC_SUPABASE_URL/);
+    expect(() => resolveSupabasePublicKey({})).toThrow(/NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY/);
+  });
+
   it('keeps the server-side config aligned with the current env model', () => {
     const env = {
       SUPABASE_URL: 'https://staging.supabase.co',

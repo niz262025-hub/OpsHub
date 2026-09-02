@@ -1,4 +1,4 @@
-export type UserRole = 'ADMIN' | 'SELLER';
+export type UserRole = 'ADMIN' | 'SELLER' | 'CUSTOMER';
 export type AccountStatus = 'ACTIVE' | 'SUSPENDED';
 export type SellerVerificationStatus = 'PENDING' | 'VERIFIED' | 'REJECTED' | 'SUSPENDED';
 export type VerificationAction = 'APPROVE' | 'REJECT' | 'SUSPEND';
@@ -50,6 +50,12 @@ export interface SellerRecordAccessInput {
 export interface AuthSessionLike {
   authenticated?: boolean;
   role?: UserRole | null;
+  accountStatus?: AccountStatus | null;
+}
+
+export interface AdminAccessCheckResult {
+  canAccess: boolean;
+  reason?: 'missing_session' | 'non_admin' | 'inactive_admin' | 'stale_session';
 }
 
 export function getSellerAccessResult(
@@ -137,12 +143,104 @@ export function canAdminReviewSeller(actorRole: UserRole | null, accountStatus: 
   return actorRole === 'ADMIN' && accountStatus === 'ACTIVE';
 }
 
+export function canAccessAdminRoute(actorRole: UserRole | null, accountStatus: AccountStatus | null): boolean {
+  return canAdminReviewSeller(actorRole, accountStatus);
+}
+
+export function canAdminManageSellerStatus(actorRole: UserRole | null, accountStatus: AccountStatus | null): boolean {
+  return canAccessAdminRoute(actorRole, accountStatus);
+}
+
+export function canSignOut(session?: AuthSessionLike | null): boolean {
+  return Boolean(session?.authenticated);
+}
+
+export function isStaleAdminSession(session?: AuthSessionLike | null): boolean {
+  if (!session?.authenticated) {
+    return true;
+  }
+
+  if (session.role !== 'ADMIN') {
+    return true;
+  }
+
+  if (session.accountStatus !== 'ACTIVE') {
+    return true;
+  }
+
+  return false;
+}
+
+export function evaluateAdminAccess(session?: AuthSessionLike | null): AdminAccessCheckResult {
+  if (!session || !session.authenticated) {
+    return { canAccess: false, reason: 'missing_session' };
+  }
+
+  if (session.role !== 'ADMIN') {
+    return { canAccess: false, reason: 'non_admin' };
+  }
+
+  if (session.accountStatus !== 'ACTIVE') {
+    return { canAccess: false, reason: 'inactive_admin' };
+  }
+
+  return { canAccess: true };
+}
+
+export function canAdminMutateSellerStatus(
+  actorRole: UserRole | null,
+  accountStatus: AccountStatus | null,
+  action: VerificationAction | string,
+): boolean {
+  if (!canAdminReviewSeller(actorRole, accountStatus)) {
+    return false;
+  }
+
+  return action === 'APPROVE' || action === 'REJECT' || action === 'SUSPEND';
+}
+
 export function getAuthSessionState(session?: AuthSessionLike | null): AuthSessionState {
   const authenticated = Boolean(session?.authenticated);
   return {
     authenticated,
     role: authenticated ? (session?.role ?? null) : null,
   };
+}
+
+export function getUserLandingRoute(
+  role: UserRole | null | undefined,
+  accountStatus: AccountStatus | null | undefined,
+  verificationStatus: SellerVerificationStatus | string | null | undefined,
+): string {
+  if (role === 'ADMIN' && accountStatus === 'ACTIVE') {
+    return '/admin/review';
+  }
+
+  if (role === 'CUSTOMER') {
+    return '/customer/orders';
+  }
+
+  if (role === 'SELLER') {
+    if (accountStatus === 'SUSPENDED') {
+      return '/account/suspended';
+    }
+
+    if (verificationStatus === 'VERIFIED') {
+      return '/marketplace';
+    }
+
+    if (verificationStatus === 'REJECTED') {
+      return '/verification/rejected';
+    }
+
+    if (verificationStatus === 'SUSPENDED') {
+      return '/account/suspended';
+    }
+
+    return '/verification/pending';
+  }
+
+  return '/auth/login';
 }
 
 export function getLogoutState(): AuthSessionState {

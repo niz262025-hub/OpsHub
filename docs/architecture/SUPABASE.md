@@ -97,12 +97,53 @@ Additionally, validate the real database rules with staging-specific RLS and aut
 - Never import server-only secrets into browser/client bundles.
 - Keep all credential handling in process environment variables or a secure secret manager.
 
+## Staging deployment checklist
+
+For a safe staging deployment or browser UAT, use the repo as follows:
+
+1. Create a dedicated staging Supabase project or reuse the linked staging project reference only for QA.
+2. Populate environment variables from a secure secret store or an untracked `.env.local` file.
+3. Keep public values in `NEXT_PUBLIC_*` variables only.
+4. Keep server-only secrets in `SUPABASE_*` values and never expose them in client bundles.
+5. Configure the external app URL separately from the database URL.
+6. Run the repo checks before shipping or sharing the staging app.
+7. Use sandbox or test mode for payment provider setup where supported; do not add fake success flows.
+
+## Browser UAT and smoke-test setup
+
+Browser smoke tests are intentionally minimal and require an externally supplied `BASE_URL`.
+
+Required environment usage:
+
+- `BASE_URL` for the public staging app
+- `PLAYWRIGHT_TEST_SELLER_EMAIL`
+- `PLAYWRIGHT_TEST_CUSTOMER_EMAIL`
+- `PLAYWRIGHT_TEST_ADMIN_EMAIL`
+- `PLAYWRIGHT_TEST_PASSWORD`
+
+Authenticated browser tests must be skipped unless the external staging accounts are supplied. The repo does not fabricate users or credentials.
+
+## Staging onboarding runbook
+
+1. Link or select the dedicated staging Supabase project in the Supabase dashboard or CLI.
+2. Apply all migrations to the staging database.
+3. Set the required environment variables from a secure secret store or untracked local file.
+4. Create or prepare one CUSTOMER, one SELLER, and one ADMIN staging account.
+5. Mark the seller as VERIFIED and publish at least one product with inventory.
+6. Deploy or start the OpsHub app using the staging Supabase values.
+7. Set `BASE_URL` to the staging application URL.
+8. Run the Playwright authenticated suite only after all values are present.
+9. Verify that a real order is created via `create_order_for_product`.
+10. Verify inventory decreases after checkout.
+11. Verify customer/seller/admin isolation rules at runtime.
+12. Run the final local quality gate before release.
+
 ## Safe environment validation
 
 Use this command to check whether required variables exist without printing values:
 
 ```bash
-node ./scripts/check-supabase-env.mjs
+node ./scripts/check-staging-env.mjs
 ```
 
-This script exits non-zero if required variables are missing and does not print secret values.
+This script exits non-zero if required variables are missing or still placeholder values remain, and does not print secret values.

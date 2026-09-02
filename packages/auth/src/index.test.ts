@@ -1,10 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import {
+  canAccessAdminRoute,
   canAccessProtectedPage,
   canAccessSellerRecord,
+  canAdminManageSellerStatus,
+  canAdminMutateSellerStatus,
+  canSignOut,
   canUpdateVerificationStatus,
+  evaluateAdminAccess,
   getSellerAccessResult,
+  getUserLandingRoute,
   isAdminRole,
+  isStaleAdminSession,
   normalizeSellerInput,
   sanitizeRoleAssignment,
 } from './index';
@@ -95,5 +102,53 @@ describe('phase 1 access controls', () => {
     expect(canUpdateVerificationStatus('ADMIN', 'APPROVE')).toBe(true);
     expect(canUpdateVerificationStatus('ADMIN', 'REJECT')).toBe(true);
     expect(canUpdateVerificationStatus('ADMIN', 'SUSPEND')).toBe(true);
+  });
+
+  it('grants active admin access only to admin routes and admin actions', () => {
+    expect(canAccessAdminRoute('ADMIN', 'ACTIVE')).toBe(true);
+    expect(canAccessAdminRoute('ADMIN', 'SUSPENDED')).toBe(false);
+    expect(canAccessAdminRoute('SELLER', 'ACTIVE')).toBe(false);
+    expect(canAdminManageSellerStatus('ADMIN', 'ACTIVE')).toBe(true);
+    expect(canAdminManageSellerStatus('SELLER', 'ACTIVE')).toBe(false);
+  });
+
+  it('blocks stale or invalid admin sessions', () => {
+    expect(canSignOut({ authenticated: true, role: 'ADMIN', accountStatus: 'ACTIVE' })).toBe(true);
+    expect(canSignOut({ authenticated: false, role: 'ADMIN', accountStatus: 'ACTIVE' })).toBe(false);
+    expect(isStaleAdminSession({ authenticated: true, role: 'ADMIN', accountStatus: 'ACTIVE' })).toBe(false);
+    expect(isStaleAdminSession({ authenticated: true, role: 'ADMIN', accountStatus: 'SUSPENDED' })).toBe(true);
+    expect(isStaleAdminSession({ authenticated: true, role: 'SELLER', accountStatus: 'ACTIVE' })).toBe(true);
+    expect(isStaleAdminSession(null)).toBe(true);
+  });
+
+  it('rejects inactive admin and non-admin for protected admin routes', () => {
+    expect(evaluateAdminAccess({ authenticated: true, role: 'ADMIN', accountStatus: 'ACTIVE' })).toEqual({ canAccess: true });
+    expect(evaluateAdminAccess({ authenticated: true, role: 'ADMIN', accountStatus: 'SUSPENDED' })).toEqual({
+      canAccess: false,
+      reason: 'inactive_admin',
+    });
+    expect(evaluateAdminAccess({ authenticated: true, role: 'SELLER', accountStatus: 'ACTIVE' })).toEqual({
+      canAccess: false,
+      reason: 'non_admin',
+    });
+    expect(evaluateAdminAccess(null)).toEqual({ canAccess: false, reason: 'missing_session' });
+  });
+
+  it('requires active admin status for any seller-verification mutation', () => {
+    expect(canAdminMutateSellerStatus('ADMIN', 'ACTIVE', 'APPROVE')).toBe(true);
+    expect(canAdminMutateSellerStatus('ADMIN', 'ACTIVE', 'REJECT')).toBe(true);
+    expect(canAdminMutateSellerStatus('ADMIN', 'ACTIVE', 'SUSPEND')).toBe(true);
+    expect(canAdminMutateSellerStatus('ADMIN', 'SUSPENDED', 'APPROVE')).toBe(false);
+    expect(canAdminMutateSellerStatus('SELLER', 'ACTIVE', 'APPROVE')).toBe(false);
+    expect(canAdminMutateSellerStatus('ADMIN', 'ACTIVE', 'DELETE')).toBe(false);
+  });
+
+  it('routes seller sessions to the correct post-login state', () => {
+    expect(getUserLandingRoute('ADMIN', 'ACTIVE', 'PENDING')).toBe('/admin/review');
+    expect(getUserLandingRoute('SELLER', 'ACTIVE', 'PENDING')).toBe('/verification/pending');
+    expect(getUserLandingRoute('SELLER', 'ACTIVE', 'VERIFIED')).toBe('/marketplace');
+    expect(getUserLandingRoute('SELLER', 'ACTIVE', 'REJECTED')).toBe('/verification/rejected');
+    expect(getUserLandingRoute('SELLER', 'SUSPENDED', 'VERIFIED')).toBe('/account/suspended');
+    expect(getUserLandingRoute(null, null, null)).toBe('/auth/login');
   });
 });

@@ -47,10 +47,10 @@ describe('phase 3 money, orders, and payment foundation', () => {
     expect(migrationSql).toContain('Order quantity must be greater than zero');
     expect(migrationSql).toContain("set_config('app.allow_product_inventory_adjustment', 'true', true)");
     expect(migrationSql).toContain('adjust_product_inventory_for_order');
-    expect(migrationSql).toContain('seller_id = (select seller_id from public.products where id = product_id)');
-    expect(migrationSql).toContain('unit_price = (select price from public.products where id = product_id)');
-    expect(migrationSql).toContain('total = (select price from public.products where id = product_id) * quantity');
-    expect(migrationSql).toContain('orders_update_own_or_admin');
+    expect(migrationSql).toContain('seller_id = (select p.seller_id from public.products p where p.id = product_id)');
+    expect(migrationSql).toContain('unit_price = (select p.price from public.products p where p.id = product_id)');
+    expect(migrationSql).toContain('subtotal = (select p.price from public.products p where p.id = product_id) * quantity');
+    expect(migrationSql).toContain('orders_update_admin_only');
   });
 
   it('keeps payment and finance mutations restricted to server/admin controlled paths', () => {

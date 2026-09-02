@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { FormEvent, useState } from 'react';
-import { signInWithEmail } from '@/lib/auth';
+import { getCurrentUserProfileRole, signInWithEmail, signOut } from '@/lib/auth';
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -21,6 +21,15 @@ export default function AdminLoginPage() {
 
     if (signInError) {
       setError(signInError.message);
+      setLoading(false);
+      return;
+    }
+
+    const profile = await getCurrentUserProfileRole();
+
+    if (profile.error || profile.role !== 'ADMIN' || profile.accountStatus !== 'ACTIVE') {
+      await signOut();
+      setError('Active admin access is required.');
       setLoading(false);
       return;
     }

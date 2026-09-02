@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 const migrationSql = [
   readFileSync(new URL('../../../supabase/migrations/202608270001_phase1_auth.sql', import.meta.url), 'utf8'),
   readFileSync(new URL('../../../supabase/migrations/202608270002_phase1_auth_fix.sql', import.meta.url), 'utf8'),
+  readFileSync(new URL('../../../supabase/migrations/202609010001_customer_commerce.sql', import.meta.url), 'utf8'),
 ].join('\n');
 
 describe('phase 1 database and rls foundation', () => {
@@ -29,6 +30,15 @@ describe('phase 1 database and rls foundation', () => {
     expect(migrationSql).toContain('role = \'SELLER\'');
     expect(migrationSql).toContain("raise exception 'Only an active admin may change profile role'");
     expect(migrationSql).toContain("raise exception 'Only an active admin may change account status'");
+  });
+
+  it('introduces a distinct customer identity and isolation boundary', () => {
+    expect(migrationSql).toContain("ADD VALUE IF NOT EXISTS 'CUSTOMER'");
+    expect(migrationSql).toContain('create table if not exists public.customer_profiles');
+    expect(migrationSql).toContain('customer_profiles_select_own');
+    expect(migrationSql).toContain('customer_profiles_select_admin');
+    expect(migrationSql).toContain("role = 'CUSTOMER'");
+    expect(migrationSql).toContain("auth.uid() = user_id");
   });
 
   it('uses a non-recursive admin check helper for profile and seller policy evaluation', () => {
