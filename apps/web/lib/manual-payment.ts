@@ -22,6 +22,21 @@ export type ManualTransferVerification = {
   isAdmin?: boolean;
 };
 
+export type ManualTransferSubmission = {
+  actorId?: string | null;
+  buyerId?: string | null;
+  sellerId?: string | null;
+  orderStatus?: string | null;
+  paymentStatus?: string | null;
+};
+
+export type ManualPaymentSummaryInput = {
+  orderStatus?: string | null;
+  paymentStatus?: string | null;
+  hasBankDetails?: boolean;
+  hasQrCode?: boolean;
+};
+
 export function validateSellerPaymentSettings(settings: SellerPaymentSettings): { valid: boolean; reason?: string } {
   const normalized = settings ?? {};
   const bankName = (normalized.bankName ?? '').trim();
@@ -70,6 +85,32 @@ export function validateTransferProof(proof: ManualTransferProof): { valid: bool
   return { valid: true };
 }
 
+export function canSubmitManualTransferProof(input: ManualTransferSubmission): boolean {
+  const actorId = (input.actorId ?? '').trim();
+  const buyerId = (input.buyerId ?? '').trim();
+  const sellerId = (input.sellerId ?? '').trim();
+  const orderStatus = (input.orderStatus ?? '').trim();
+  const paymentStatus = (input.paymentStatus ?? '').trim();
+
+  if (!actorId || !buyerId || !sellerId) {
+    return false;
+  }
+
+  if (actorId !== buyerId) {
+    return false;
+  }
+
+  if (orderStatus === 'CANCELLED' || paymentStatus === 'CANCELLED') {
+    return false;
+  }
+
+  if (orderStatus === 'PAID' || paymentStatus === 'PAID') {
+    return false;
+  }
+
+  return true;
+}
+
 export function canVerifyManualTransfer(input: ManualTransferVerification): boolean {
   const actorId = (input.actorId ?? '').trim();
   const sellerId = (input.sellerId ?? '').trim();
@@ -93,4 +134,29 @@ export function canVerifyManualTransfer(input: ManualTransferVerification): bool
   const isAdminVerification = Boolean(input.isAdmin);
 
   return Boolean(isSellerVerification || isAdminVerification);
+}
+
+export function getManualPaymentSummary(input: ManualPaymentSummaryInput): string {
+  const orderStatus = (input.orderStatus ?? '').trim();
+  const paymentStatus = (input.paymentStatus ?? '').trim();
+  const hasBankDetails = Boolean(input.hasBankDetails);
+  const hasQrCode = Boolean(input.hasQrCode);
+
+  if (orderStatus === 'PAID' || paymentStatus === 'PAID') {
+    return 'Paid — manual bank transfer was verified and the order is now paid.';
+  }
+
+  if (orderStatus === 'CANCELLED' || paymentStatus === 'CANCELLED') {
+    return 'Payment cancelled — no manual transfer is required.';
+  }
+
+  const methodSummary = hasBankDetails && hasQrCode
+    ? 'bank details and QR code'
+    : hasBankDetails
+      ? 'bank details'
+      : hasQrCode
+        ? 'QR code'
+        : 'manual bank transfer';
+
+  return `Manual bank transfer required: pay by ${methodSummary}. Once the seller verifies the transfer, the order will be marked Paid.`;
 }

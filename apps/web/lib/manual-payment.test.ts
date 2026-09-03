@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  canSubmitManualTransferProof,
   canVerifyManualTransfer,
+  getManualPaymentSummary,
   validateSellerPaymentSettings,
   validateTransferProof,
 } from './manual-payment';
@@ -100,5 +102,47 @@ describe('manual bank transfer workflow', () => {
         isAdmin: false,
       }),
     ).toBe(true);
+  });
+
+  it('allows customers to submit proof only before payment is confirmed', () => {
+    expect(
+      canSubmitManualTransferProof({
+        actorId: 'buyer-1',
+        buyerId: 'buyer-1',
+        sellerId: 'seller-1',
+        orderStatus: 'PENDING_PAYMENT',
+        paymentStatus: 'PENDING',
+      }),
+    ).toBe(true);
+
+    expect(
+      canSubmitManualTransferProof({
+        actorId: 'buyer-1',
+        buyerId: 'buyer-1',
+        sellerId: 'seller-1',
+        orderStatus: 'PAID',
+        paymentStatus: 'PAID',
+      }),
+    ).toBe(false);
+  });
+
+  it('builds a clear summary for manual payment instruction and verification state', () => {
+    expect(
+      getManualPaymentSummary({
+        orderStatus: 'PENDING_PAYMENT',
+        paymentStatus: 'PENDING',
+        hasBankDetails: true,
+        hasQrCode: true,
+      }),
+    ).toContain('Manual bank transfer');
+
+    expect(
+      getManualPaymentSummary({
+        orderStatus: 'PAID',
+        paymentStatus: 'PAID',
+        hasBankDetails: true,
+        hasQrCode: false,
+      }),
+    ).toContain('Paid');
   });
 });
