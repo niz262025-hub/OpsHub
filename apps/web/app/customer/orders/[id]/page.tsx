@@ -127,7 +127,7 @@ export default function CustomerOrderDetailPage() {
         payment_proof_url: proofUrl,
         payment_reference: transferReference,
         payment_transfer_date: new Date(transferDate).toISOString(),
-      }).eq('id', order.id);
+      }).eq('id', order!.id);
 
       if (updateError) {
         throw new Error(updateError.message);

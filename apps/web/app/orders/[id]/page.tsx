@@ -124,8 +124,8 @@ export default function SellerOrderDetailPage() {
       }
 
       const { data, error: verifyError } = await supabase.rpc('mark_order_paid_by_manual_transfer', {
-        p_order_id: order.id,
-        p_seller_id: order.seller_id,
+        p_order_id: order!.id,
+        p_seller_id: order!.seller_id,
         p_verifier_id: verifierId,
       });
 
