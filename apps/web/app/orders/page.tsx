@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { ORDER_STATUSES, PAYMENT_STATUSES, calculateOrderTotals, isOrderTransitionAllowed } from '@/lib/orders';
 import { getSupabaseBrowserClient } from '@/lib/supabase';
@@ -95,7 +96,7 @@ export default function OrdersPage() {
             <tbody>
               {totals.map((order) => (
                 <tr key={order.id}>
-                  <td style={{ padding: '0.75rem 0.5rem' }}>{order.id}</td>
+                  <td style={{ padding: '0.75rem 0.5rem' }}><Link href={`/orders/${order.id}`}>{order.id}</Link></td>
                   <td style={{ padding: '0.75rem 0.5rem' }}>{order.profiles?.full_name ?? 'Customer'}</td>
                   <td style={{ padding: '0.75rem 0.5rem' }}>{order.products?.name ?? 'Product'}</td>
                   <td style={{ padding: '0.75rem 0.5rem' }}>{order.quantity}</td>

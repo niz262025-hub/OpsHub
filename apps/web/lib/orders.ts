@@ -29,6 +29,15 @@ export type OrderTotals = {
   totalCents: number;
 };
 
+export type SellerOrderAccessTarget = {
+  id?: string | null;
+  seller_id?: string | null;
+} | null | undefined;
+
+export function canSellerAccessOrder(order: SellerOrderAccessTarget, sellerId: string | null | undefined): boolean {
+  return Boolean(order && order.id && order.seller_id && sellerId && order.seller_id === sellerId);
+}
+
 export function calculateOrderTotals(unitPriceCents: number, quantity: number): OrderTotals {
   if (!Number.isFinite(unitPriceCents) || unitPriceCents < 0) {
     throw new Error('Unit price must be a non-negative number of cents');

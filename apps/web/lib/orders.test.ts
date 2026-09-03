@@ -4,6 +4,7 @@ import {
   ORDER_STATUSES,
   PAYMENT_STATUSES,
   calculateOrderTotals,
+  canSellerAccessOrder,
   isOrderTransitionAllowed,
   isValidOrderStatus,
   isValidPaymentStatus,
@@ -69,5 +70,18 @@ describe('order lifecycle state machine and inventory safety', () => {
     expect(isValidPaymentStatus('PAID')).toBe(true);
     expect(isValidPaymentStatus('FAILED')).toBe(true);
     expect(isValidPaymentStatus('REFUNDED')).toBe(true);
+  });
+
+  it('allows seller access only to orders owned by that seller', () => {
+    expect(canSellerAccessOrder({ id: 'order-1', seller_id: 'seller-1' }, 'seller-1')).toBe(true);
+    expect(canSellerAccessOrder({ id: 'order-1', seller_id: 'seller-2' }, 'seller-1')).toBe(false);
+    expect(canSellerAccessOrder(null, 'seller-1')).toBe(false);
+    expect(canSellerAccessOrder({ id: 'order-1', seller_id: 'seller-1' }, null)).toBe(false);
+  });
+
+  it('rejects invalid seller detail lookups safely', () => {
+    expect(canSellerAccessOrder({ id: '', seller_id: 'seller-1' }, 'seller-1')).toBe(false);
+    expect(canSellerAccessOrder({ id: 'order-1', seller_id: '' }, 'seller-1')).toBe(false);
+    expect(canSellerAccessOrder({ id: 'order-1', seller_id: 'seller-2' }, 'seller-1')).toBe(false);
   });
 });
