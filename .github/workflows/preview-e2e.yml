@@ -1,0 +1,93 @@
+name: Live Preview E2E
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Branch or ref to test
+        required: false
+        type: string
+
+jobs:
+  preview-e2e:
+    name: Run Playwright against the live Preview URL
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      BASE_URL: ${{ vars.BASE_URL || secrets.BASE_URL }}
+      PLAYWRIGHT_TEST_CUSTOMER_EMAIL: ${{ secrets.PLAYWRIGHT_TEST_CUSTOMER_EMAIL }}
+      PLAYWRIGHT_TEST_SELLER_EMAIL: ${{ secrets.PLAYWRIGHT_TEST_SELLER_EMAIL }}
+      PLAYWRIGHT_TEST_ADMIN_EMAIL: ${{ secrets.PLAYWRIGHT_TEST_ADMIN_EMAIL }}
+      PLAYWRIGHT_TEST_PASSWORD: ${{ secrets.PLAYWRIGHT_TEST_PASSWORD }}
+
+    steps:
+      - name: Checkout selected ref
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.32.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Validate required Preview E2E inputs
+        shell: bash
+        run: |
+          set -eu
+
+          if [ -z "${BASE_URL:-}" ]; then
+            echo "::error::BASE_URL is required. Configure it as a repository variable or secret."
+            exit 1
+          fi
+
+          case "$BASE_URL" in
+            http://localhost*|https://localhost*|http://127.0.0.1*|https://127.0.0.1*)
+              echo "::error::BASE_URL must be the live Preview URL, not localhost."
+              exit 1
+              ;;
+          esac
+
+          for key in \
+            PLAYWRIGHT_TEST_CUSTOMER_EMAIL \
+            PLAYWRIGHT_TEST_SELLER_EMAIL \
+            PLAYWRIGHT_TEST_ADMIN_EMAIL \
+            PLAYWRIGHT_TEST_PASSWORD
+          do
+            if [ -z "${!key:-}" ]; then
+              echo "::error::Missing required GitHub secret: $key"
+              exit 1
+            fi
+          done
+
+          curl -fsSL --max-time 20 "$BASE_URL" >/dev/null || {
+            echo "::error::Preview URL is unreachable: $BASE_URL"
+            exit 1
+          }
+
+          echo "Preview E2E prerequisites validated."
+
+      - name: Run Playwright E2E against Preview
+        run: pnpm test:e2e
+
+      - name: Upload Playwright artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-preview-e2e-artifacts
+          path: |
+            test-results/playwright/**
+            playwright-report/**
+          if-no-files-found: ignore
