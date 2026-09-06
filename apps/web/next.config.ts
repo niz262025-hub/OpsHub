@@ -4,7 +4,18 @@ import type { NextConfig } from 'next';
 
 const appDir = __dirname;
 const repoRoot = path.resolve(appDir, '../..');
-const candidateFiles = [path.join(repoRoot, '.env.local'), path.join(appDir, '.env.local'), path.join(repoRoot, '.env'), path.join(appDir, '.env')];
+const candidateFiles = [
+  path.join(repoRoot, '.env.local'),
+  path.join(repoRoot, '.env.preview.local'),
+  path.join(repoRoot, '.env.production.local'),
+  path.join(repoRoot, '.env.development.local'),
+  path.join(repoRoot, '.env'),
+  path.join(appDir, '.env.local'),
+  path.join(appDir, '.env.preview.local'),
+  path.join(appDir, '.env.production.local'),
+  path.join(appDir, '.env.development.local'),
+  path.join(appDir, '.env'),
+];
 
 const loadDefinedEnv = () => {
   const values: Record<string, string> = {};
