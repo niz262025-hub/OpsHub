@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { signOut } from '@/lib/auth';
+import { resolveSellerVerificationAction, type SellerVerificationAction } from '@/lib/admin-review';
 import { getSupabaseBrowserClient } from '@/lib/supabase';
 
 type SellerReviewRow = {
@@ -99,7 +100,8 @@ export default function AdminReviewPage() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>, userId: string) {
     event.preventDefault();
-    const action = event.currentTarget.dataset.action as 'APPROVE' | 'REJECT' | 'SUSPEND';
+    const submitter = (event.nativeEvent as SubmitEvent)?.submitter as HTMLButtonElement | null;
+    const action = resolveSellerVerificationAction(submitter, event.currentTarget) as SellerVerificationAction;
     const note = noteDrafts[userId] ?? '';
 
     if (action === 'APPROVE') {
