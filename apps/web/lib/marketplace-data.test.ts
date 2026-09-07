@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { isPublicProductAvailableForPurchase, jsonifyMarketplaceProductRow, toPublicMarketplaceProduct } from './marketplace-data';
+import { canCustomerBuyProduct, isPublicProductAvailableForPurchase, jsonifyMarketplaceProductRow, toPublicMarketplaceProduct } from './marketplace-data';
 
 describe('isPublicProductAvailableForPurchase', () => {
   it('allows only published public products with stock to be purchased', () => {
@@ -43,5 +43,12 @@ describe('marketplace product row mapping', () => {
       isPublic: true,
       quantity: 3,
     })).toBe(true);
+  });
+
+  it('shows Buy now only when the session role is CUSTOMER and the product is eligible', () => {
+    expect(canCustomerBuyProduct('CUSTOMER', { status: 'PUBLISHED', is_public: true, quantity: 2 })).toBe(true);
+    expect(canCustomerBuyProduct('SELLER', { status: 'PUBLISHED', is_public: true, quantity: 2 })).toBe(false);
+    expect(canCustomerBuyProduct('CUSTOMER', { status: 'DRAFT', is_public: true, quantity: 2 })).toBe(false);
+    expect(canCustomerBuyProduct(null, { status: 'PUBLISHED', is_public: true, quantity: 2 })).toBe(false);
   });
 });

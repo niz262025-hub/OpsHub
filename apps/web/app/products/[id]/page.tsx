@@ -3,8 +3,8 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { getCurrentUserProfileRole } from '@/lib/auth';
-import { isPublicProductAvailableForPurchase } from '@/lib/marketplace-data';
+import { getCurrentUserProfileRole, getSession } from '@/lib/auth';
+import { canCustomerBuyProduct, isPublicProductAvailableForPurchase } from '@/lib/marketplace-data';
 import { getSupabaseBrowserClient } from '@/lib/supabase';
 
 type PublicProductRow = {
@@ -30,6 +30,18 @@ export default function PublicProductPage() {
     let active = true;
 
     async function loadProduct() {
+      const { data: sessionData } = await getSession();
+      const userId = sessionData.session?.user?.id;
+
+      if (!userId) {
+        setRole(null);
+      } else {
+        const profile = await getCurrentUserProfileRole();
+        if (active) {
+          setRole(profile.role ?? null);
+        }
+      }
+
       const { data, error } = await supabase
         .from('products')
         .select('*')
@@ -45,10 +57,6 @@ export default function PublicProductPage() {
       }
 
       setProduct(data as PublicProductRow);
-      const profile = await getCurrentUserProfileRole();
-      if (active) {
-        setRole(profile.role ?? null);
-      }
       setLoading(false);
     }
 
@@ -82,7 +90,7 @@ export default function PublicProductPage() {
           <p className="status-row">{product.quantity} available · {product.source}</p>
           <p className="description">{product.description ?? 'No description provided.'}</p>
           <div className="product-detail-actions">
-            {role === 'CUSTOMER' ? (
+            {canCustomerBuyProduct(role, product) ? (
               <Link href={`/products/${product.id}/checkout`}>Buy now</Link>
             ) : (
               <>

@@ -40,6 +40,10 @@ export function isPublicProductAvailableForPurchase(product: MarketplaceProductA
   return product.status === 'PUBLISHED' && isPublic === true && Number(product.quantity ?? 0) > 0;
 }
 
+export function canCustomerBuyProduct(role: string | null | undefined, product: MarketplaceProductAvailabilityInput): boolean {
+  return role === 'CUSTOMER' && isPublicProductAvailableForPurchase(product);
+}
+
 export function jsonifyMarketplaceProductRow(product: MarketplaceProductRow): PublicMarketplaceProduct {
   return {
     id: product.id,
