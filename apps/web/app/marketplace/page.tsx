@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { FormEvent, useMemo, useState, useEffect } from 'react';
 import { PRODUCT_SOURCES, PRODUCT_STATUSES, generateProductShareUrl, getMarketingShareLinks, sampleProducts, type Product } from '@/lib/marketplace';
+import { toPublicMarketplaceProduct, type PublicMarketplaceProduct } from '@/lib/marketplace-data';
 import { getSupabaseBrowserClient } from '@/lib/supabase';
 
 const EMPTY_FORM = {
@@ -22,6 +23,23 @@ export default function MarketplacePage() {
   const [loading, setLoading] = useState(true);
   const supabase = useMemo(() => getSupabaseBrowserClient(), []);
 
+  function toClientProduct(product: PublicMarketplaceProduct): Product {
+    return {
+      id: product.id,
+      sellerId: product.sellerId,
+      name: product.name,
+      description: product.description,
+      price: product.price,
+      quantity: product.quantity,
+      status: product.status,
+      source: product.source,
+      isPublic: product.isPublic,
+      imageUrl: product.imageUrl,
+      createdAt: product.createdAt,
+      updatedAt: product.updatedAt,
+    };
+  }
+
   useEffect(() => {
     let active = true;
 
@@ -36,20 +54,16 @@ export default function MarketplacePage() {
       if (!active) return;
 
       if (!error && data) {
-        setProducts(data.map((product) => ({
-          id: product.id,
-          sellerId: product.seller_id,
-          name: product.name,
-          description: product.description ?? 'Marketplace product ready for review.',
-          price: Number(product.price ?? 0),
-          quantity: Number(product.quantity ?? 0),
-          status: product.status,
-          source: product.source ?? 'OWNED',
-          isPublic: Boolean(product.is_public),
-          imageUrl: product.image_url ?? 'https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=900&q=80',
-          createdAt: product.created_at ?? new Date().toISOString(),
-          updatedAt: product.updated_at ?? new Date().toISOString(),
-        })) as Product[]);
+        const mappedProducts = data
+          .map((product) => toPublicMarketplaceProduct(product))
+          .filter((product): product is PublicMarketplaceProduct => product !== null)
+          .map((product) => toClientProduct(product));
+
+        if (mappedProducts.length > 0) {
+          setProducts(mappedProducts);
+        } else {
+          setProducts(sampleProducts);
+        }
       }
 
       setLoading(false);
@@ -186,7 +200,7 @@ export default function MarketplacePage() {
                       <span>{product.source}</span>
                     </div>
                     <div className="product-actions">
-                      <Link href={`/marketplace/${product.id}`}>Detail</Link>
+                      <Link href={`/products/${product.id}`}>Detail</Link>
                       <Link href={`/marketplace/${product.id}/edit`}>Edit</Link>
                       <button type="button" onClick={() => togglePublish(product.id)}>{product.status === 'PUBLISHED' ? 'Unpublish' : 'Publish'}</button>
                       <button type="button" onClick={() => shareProduct(product)}>Share</button>

@@ -1,12 +1,25 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { generateProductShareUrl, getMarketingShareLinks, sampleProducts } from '@/lib/marketplace';
+import { createSupabaseServerClient } from '@/lib/supabase-server';
+import { isPublicProductAvailableForPurchase, jsonifyMarketplaceProductRow } from '@/lib/marketplace-data';
+import { generateProductShareUrl, getMarketingShareLinks } from '@/lib/marketplace';
 
 export default async function MarketplaceProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const product = sampleProducts.find((entry) => entry.id === id);
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.from('products').select('*').eq('id', id).maybeSingle();
 
-  if (!product) {
+  if (error || !data) {
+    notFound();
+  }
+
+  const product = jsonifyMarketplaceProductRow(data);
+
+  if (!isPublicProductAvailableForPurchase({
+    status: product.status,
+    is_public: product.isPublic,
+    quantity: product.quantity,
+  })) {
     notFound();
   }
 
@@ -25,7 +38,7 @@ export default async function MarketplaceProductDetailPage({ params }: { params:
           <p className="status-row">{product.status} · {product.source} · {product.quantity} units</p>
           <p className="description">{product.description}</p>
           <div className="product-detail-actions">
-            <Link href={`/marketplace/${product.id}/edit`}>Edit product</Link>
+            <Link href={`/products/${product.id}`}>Open purchase page</Link>
             <Link href={generateProductShareUrl(product.id)}>Share / Post Product</Link>
           </div>
           <div className="share-links">
