@@ -34,13 +34,13 @@ test.describe('OpsHub authenticated staging checks', () => {
     await expect(page).toHaveURL(/\/marketplace|\/verification\/pending|\/account\/suspended|\/verification\/rejected/, { timeout: 20000 });
   });
 
-  test('customer login flow reaches the public app state without admin route access', async ({ page }) => {
-    await page.goto(`${baseURL}/auth/login`, { waitUntil: 'domcontentloaded' });
+  test('customer login flow reaches customer orders after valid session', async ({ page }) => {
+    await page.goto(`${baseURL}/auth/customer/login`, { waitUntil: 'domcontentloaded' });
     await page.getByLabel(/Email/i).fill(customerEmail!);
     await page.getByLabel(/Password/i).fill(password!);
     await page.getByRole('button', { name: /Log in/i }).click();
 
-    await expect(page).not.toHaveURL(/\/admin\//, { timeout: 20000 });
+    await expect(page).toHaveURL(/\/customer\/orders/, { timeout: 20000 });
   });
 
   test('admin login flow reaches admin review page', async ({ page }) => {

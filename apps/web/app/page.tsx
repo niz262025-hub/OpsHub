@@ -95,8 +95,11 @@ export default function HomePage() {
         </div>
       ) : (
         <div className="auth-actions" style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '1.5rem' }}>
-          <Link href="/auth/login" className="primary-link" style={{ display: 'inline-block', padding: '0.75rem 1.1rem', borderRadius: '0.75rem', background: '#111827', color: '#fff', textDecoration: 'none' }}>
-            Log in
+          <Link href="/auth/customer/login" className="primary-link" style={{ display: 'inline-block', padding: '0.75rem 1.1rem', borderRadius: '0.75rem', background: '#111827', color: '#fff', textDecoration: 'none' }}>
+            Customer login
+          </Link>
+          <Link href="/auth/login" className="secondary-link" style={{ display: 'inline-block', padding: '0.75rem 1.1rem', borderRadius: '0.75rem', border: '1px solid #d1d5db', color: '#111827', textDecoration: 'none' }}>
+            Seller login
           </Link>
           <Link href="/auth/register" className="secondary-link" style={{ display: 'inline-block', padding: '0.75rem 1.1rem', borderRadius: '0.75rem', border: '1px solid #d1d5db', color: '#111827', textDecoration: 'none' }}>
             Become a seller
