@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { FormEvent, useState } from 'react';
-import { getCurrentUserProfileRole, signInWithEmail, signOut } from '@/lib/auth';
+import { getAuthRedirectPathForRole, getCurrentUserProfileRole, signInWithEmail, signOut } from '@/lib/auth';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -34,25 +34,19 @@ export default function LoginPage() {
       return;
     }
 
-    if (profile.role === 'ADMIN') {
-      if (profile.accountStatus === 'ACTIVE') {
-        router.push('/admin/review');
-      } else {
-        await signOut();
-        setError('Active admin access is required.');
-        setLoading(false);
-        return;
-      }
-    } else if (profile.role === 'CUSTOMER') {
-      router.push('/customer/orders');
-    } else if (profile.accountStatus === 'SUSPENDED') {
-      router.push('/account/suspended');
-    } else if (profile.verificationStatus === 'VERIFIED') {
-      router.push('/marketplace');
-    } else if (profile.verificationStatus === 'REJECTED') {
-      router.push('/verification/rejected');
+    const redirectPath = getAuthRedirectPathForRole({
+      role: profile.role,
+      accountStatus: profile.accountStatus,
+      verificationStatus: profile.verificationStatus,
+    });
+
+    if (redirectPath) {
+      router.push(redirectPath);
     } else {
-      router.push('/verification/pending');
+      await signOut();
+      setError('Your account could not be verified. Please sign in again.');
+      setLoading(false);
+      return;
     }
 
     router.refresh();

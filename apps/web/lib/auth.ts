@@ -128,6 +128,42 @@ export function normalizeProfileRoleResult({
   };
 }
 
+export function getAuthRedirectPathForRole({
+  role,
+  accountStatus,
+  verificationStatus,
+}: {
+  role: string | null | undefined;
+  accountStatus?: string | null;
+  verificationStatus?: string | null;
+}) {
+  if (role === 'ADMIN' && accountStatus === 'ACTIVE') {
+    return '/admin/review';
+  }
+
+  if (role === 'CUSTOMER') {
+    return '/customer/orders';
+  }
+
+  if (role === 'SELLER') {
+    if (accountStatus === 'SUSPENDED') {
+      return '/account/suspended';
+    }
+
+    if (verificationStatus === 'VERIFIED') {
+      return '/marketplace';
+    }
+
+    if (verificationStatus === 'REJECTED') {
+      return '/verification/rejected';
+    }
+
+    return '/verification/pending';
+  }
+
+  return null;
+}
+
 export async function getCurrentUserProfileRole() {
   const supabase = getSupabaseBrowserClient();
   const { data: userData, error: userError } = await supabase.auth.getUser();

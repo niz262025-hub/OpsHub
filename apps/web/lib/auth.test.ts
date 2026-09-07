@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { normalizeProfileRoleResult } from './auth';
+import { getAuthRedirectPathForRole, normalizeProfileRoleResult } from './auth';
 
 describe('normalizeProfileRoleResult', () => {
   it('preserves an authenticated CUSTOMER role when the seller profile lookup is empty or denied', () => {
@@ -25,5 +25,11 @@ describe('normalizeProfileRoleResult', () => {
 
     expect(result.role).toBe('SELLER');
     expect(result.verificationStatus).toBe('VERIFIED');
+  });
+
+  it('uses the canonical customer redirect path for customer roles', () => {
+    expect(getAuthRedirectPathForRole({ role: 'CUSTOMER' })).toBe('/customer/orders');
+    expect(getAuthRedirectPathForRole({ role: 'SELLER', verificationStatus: 'VERIFIED' })).toBe('/marketplace');
+    expect(getAuthRedirectPathForRole({ role: 'ADMIN', accountStatus: 'ACTIVE' })).toBe('/admin/review');
   });
 });

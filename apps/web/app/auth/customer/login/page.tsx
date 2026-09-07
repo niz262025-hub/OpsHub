@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { FormEvent, useState } from 'react';
-import { getCurrentUserProfileRole, signInWithEmail, signOut } from '@/lib/auth';
+import { getAuthRedirectPathForRole, getCurrentUserProfileRole, signInWithEmail, signOut } from '@/lib/auth';
 
 export default function CustomerLoginPage() {
   const router = useRouter();
@@ -39,7 +39,20 @@ export default function CustomerLoginPage() {
       return;
     }
 
-    router.push('/customer/orders');
+    const redirectPath = getAuthRedirectPathForRole({
+      role: profile.role,
+      accountStatus: profile.accountStatus,
+      verificationStatus: profile.verificationStatus,
+    });
+
+    if (!redirectPath) {
+      await signOut();
+      setError('Your account could not be verified. Please sign in again.');
+      setLoading(false);
+      return;
+    }
+
+    router.push(redirectPath);
     router.refresh();
     setLoading(false);
   }
