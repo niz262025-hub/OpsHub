@@ -1,3 +1,6 @@
+const FALLBACK_SUPABASE_URL = 'https://iytiyugzmlsofwtortth.supabase.co';
+const FALLBACK_SUPABASE_PUBLIC_KEY = 'sb_publishable_3R0FmgiwBuO-ki87YhkLlA_UqjIV7S-';
+
 function getNonEmptyString(env: Partial<NodeJS.ProcessEnv>, keys: string[]) {
   for (const key of keys) {
     const value = env[key];
@@ -12,21 +15,29 @@ function getNonEmptyString(env: Partial<NodeJS.ProcessEnv>, keys: string[]) {
 export function resolveSupabasePublicKey(env: Partial<NodeJS.ProcessEnv> = process.env) {
   const value = getNonEmptyString(env, ['NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY', 'NEXT_PUBLIC_SUPABASE_ANON_KEY']);
 
-  if (!value) {
-    throw new Error('Missing NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY. The browser runtime must be configured with the staging Supabase public key.');
+  if (value) {
+    return value;
   }
 
-  return value;
+  if (process.env.VERCEL_ENV || process.env.NODE_ENV === 'production') {
+    return FALLBACK_SUPABASE_PUBLIC_KEY;
+  }
+
+  throw new Error('Missing NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY. The browser runtime must be configured with the staging Supabase public key.');
 }
 
 export function resolveSupabaseUrl(env: Partial<NodeJS.ProcessEnv> = process.env) {
   const value = getNonEmptyString(env, ['NEXT_PUBLIC_SUPABASE_URL']);
 
-  if (!value) {
-    throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL. The browser runtime must be configured with the staging Supabase URL.');
+  if (value) {
+    return value;
   }
 
-  return value;
+  if (process.env.VERCEL_ENV || process.env.NODE_ENV === 'production') {
+    return FALLBACK_SUPABASE_URL;
+  }
+
+  throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL. The browser runtime must be configured with the staging Supabase URL.');
 }
 
 export function resolveServerSupabaseUrl(env: Partial<NodeJS.ProcessEnv> = process.env) {
