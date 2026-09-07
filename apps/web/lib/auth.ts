@@ -78,6 +78,56 @@ export async function getCurrentUser() {
   return supabase.auth.getUser();
 }
 
+export function normalizeProfileRoleResult({
+  profileData,
+  profileError,
+  sellerData,
+  sellerError,
+}: {
+  profileData?: { role?: string | null; account_status?: string | null } | null;
+  profileError?: Error | null;
+  sellerData?: { verification_status?: string | null } | null;
+  sellerError?: Error | null;
+}) {
+  if (profileError) {
+    return {
+      role: null,
+      accountStatus: null,
+      verificationStatus: null,
+      error: profileError,
+    };
+  }
+
+  const role = profileData?.role ?? null;
+  const accountStatus = profileData?.account_status ?? null;
+  const verificationStatus = sellerData?.verification_status ?? null;
+
+  if (sellerError && role !== 'SELLER') {
+    return {
+      role,
+      accountStatus,
+      verificationStatus: null,
+      error: null,
+    };
+  }
+
+  if (sellerError) {
+    return {
+      role,
+      accountStatus,
+      verificationStatus: null,
+      error: sellerError,
+    };
+  }
+
+  return {
+    role,
+    accountStatus,
+    verificationStatus,
+    error: null,
+  };
+}
+
 export async function getCurrentUserProfileRole() {
   const supabase = getSupabaseBrowserClient();
   const { data: userData, error: userError } = await supabase.auth.getUser();
@@ -98,23 +148,28 @@ export async function getCurrentUserProfileRole() {
     .maybeSingle();
 
   if (profileError) {
-    return { role: null, accountStatus: null, verificationStatus: null, error: profileError };
+    return normalizeProfileRoleResult({ profileData: null, profileError, sellerData: null, sellerError: null });
   }
 
-  const { data: sellerData, error: sellerError } = await supabase
-    .from('seller_profiles')
-    .select('verification_status')
-    .eq('user_id', userData.user.id)
-    .maybeSingle();
+  const role = profileData?.role ?? null;
+  let sellerData: { verification_status?: string | null } | null = null;
+  let sellerError: Error | null = null;
 
-  if (sellerError) {
-    return { role: null, accountStatus: null, verificationStatus: null, error: sellerError };
+  if (role === 'SELLER') {
+    const result = await supabase
+      .from('seller_profiles')
+      .select('verification_status')
+      .eq('user_id', userData.user.id)
+      .maybeSingle();
+
+    sellerData = result.data as { verification_status?: string | null } | null;
+    sellerError = result.error ?? null;
   }
 
-  return {
-    role: profileData?.role ?? null,
-    accountStatus: profileData?.account_status ?? null,
-    verificationStatus: sellerData?.verification_status ?? null,
-    error: null,
-  };
+  return normalizeProfileRoleResult({
+    profileData,
+    profileError: null,
+    sellerData,
+    sellerError,
+  });
 }
