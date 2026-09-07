@@ -19,7 +19,7 @@ describe('getSellerBankDetailsForOrder', () => {
     const select = vi.fn(() => ({ eq }));
     const from = vi.fn(() => ({ select }));
 
-    const result = await getSellerBankDetailsForOrder({ from } as any, 'seller-123');
+    const result = await getSellerBankDetailsForOrder({ from }, 'seller-123');
 
     expect(from).toHaveBeenCalledWith('seller_profiles');
     expect(result.data?.bank_name).toBe('Test Bank');

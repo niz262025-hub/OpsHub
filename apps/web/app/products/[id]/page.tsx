@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { getCurrentUserProfileRole } from '@/lib/auth';
+import { isPublicProductAvailableForPurchase } from '@/lib/marketplace-data';
 import { getSupabaseBrowserClient } from '@/lib/supabase';
 
 type PublicProductRow = {
@@ -62,7 +63,7 @@ export default function PublicProductPage() {
     return <main className="marketplace-shell narrow"><article className="panel"><p className="muted">Loading product…</p></article></main>;
   }
 
-  if (!product || product.status !== 'PUBLISHED' || product.is_public !== true) {
+  if (!product || !isPublicProductAvailableForPurchase(product)) {
     return <main className="marketplace-shell narrow"><article className="panel"><p className="muted">This product is not available for purchase.</p></article></main>;
   }
 

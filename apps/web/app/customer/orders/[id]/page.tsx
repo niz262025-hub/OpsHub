@@ -7,6 +7,14 @@ import { getCurrentUserProfileRole, getSession } from '@/lib/auth';
 import { getManualPaymentSummary, validateTransferProof } from '@/lib/manual-payment';
 import { getSupabaseBrowserClient } from '@/lib/supabase';
 
+type SellerBankDetails = {
+  bank_name?: string | null;
+  account_holder_name?: string | null;
+  account_number?: string | null;
+  payment_instructions?: string | null;
+  qr_image_url?: string | null;
+};
+
 type OrderDetailRow = {
   id: string;
   buyer_id: string;
@@ -21,13 +29,12 @@ type OrderDetailRow = {
   payment_status: string;
   created_at: string;
   products?: { name?: string | null; id?: string | null } | null;
-  seller_profiles?: {
-    bank_name?: string | null;
-    account_holder_name?: string | null;
-    account_number?: string | null;
-    payment_instructions?: string | null;
-    qr_image_url?: string | null;
-  } | null;
+  seller_profiles?: SellerBankDetails | null;
+};
+
+type SellerBankQueryResult = {
+  data: SellerBankDetails | null;
+  error: { message: string } | null;
 };
 
 export default function CustomerOrderDetailPage() {
@@ -86,7 +93,7 @@ export default function CustomerOrderDetailPage() {
         return;
       }
 
-      let sellerBankResult: { data: any; error: any } | null = null;
+      let sellerBankResult: SellerBankQueryResult | null = null;
       try {
         sellerBankResult = await supabase
           .from('seller_profiles')

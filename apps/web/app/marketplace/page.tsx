@@ -1,8 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { FormEvent, useMemo, useState } from 'react';
+import { FormEvent, useMemo, useState, useEffect } from 'react';
 import { PRODUCT_SOURCES, PRODUCT_STATUSES, generateProductShareUrl, getMarketingShareLinks, sampleProducts, type Product } from '@/lib/marketplace';
+import { getSupabaseBrowserClient } from '@/lib/supabase';
 
 const EMPTY_FORM = {
   name: '',
@@ -18,6 +19,48 @@ export default function MarketplacePage() {
   const [products, setProducts] = useState<Product[]>(sampleProducts);
   const [form, setForm] = useState(EMPTY_FORM);
   const [generatedUrl, setGeneratedUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const supabase = useMemo(() => getSupabaseBrowserClient(), []);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadProducts() {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .eq('is_public', true)
+        .eq('status', 'PUBLISHED')
+        .order('created_at', { ascending: false });
+
+      if (!active) return;
+
+      if (!error && data) {
+        setProducts(data.map((product) => ({
+          id: product.id,
+          sellerId: product.seller_id,
+          name: product.name,
+          description: product.description ?? 'Marketplace product ready for review.',
+          price: Number(product.price ?? 0),
+          quantity: Number(product.quantity ?? 0),
+          status: product.status,
+          source: product.source ?? 'OWNED',
+          isPublic: Boolean(product.is_public),
+          imageUrl: product.image_url ?? 'https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=900&q=80',
+          createdAt: product.created_at ?? new Date().toISOString(),
+          updatedAt: product.updated_at ?? new Date().toISOString(),
+        })) as Product[]);
+      }
+
+      setLoading(false);
+    }
+
+    void loadProducts();
+
+    return () => {
+      active = false;
+    };
+  }, [supabase]);
 
   const publishedCount = useMemo(() => products.filter((product) => product.status === 'PUBLISHED').length, [products]);
 
@@ -77,6 +120,7 @@ export default function MarketplacePage() {
       <section className="marketplace-grid">
         <div className="panel">
           <h2>Add product</h2>
+          {loading ? <p className="muted">Loading public listings…</p> : null}
           <form className="product-form" onSubmit={handleSubmit}>
             <label>
               Product name
