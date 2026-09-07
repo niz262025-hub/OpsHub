@@ -18,5 +18,17 @@ export async function getSellerBankDetailsForOrder(
   },
   sellerId: string,
 ) {
-  return supabaseClient.from('seller_profiles').select('bank_name, account_holder_name, account_number, payment_instructions, qr_image_url').eq('user_id', sellerId).maybeSingle();
+  try {
+    const result = await supabaseClient.from('seller_profiles').select('bank_name, account_holder_name, account_number, payment_instructions, qr_image_url').eq('user_id', sellerId).maybeSingle();
+    if (result.error && /column .*bank_name.* does not exist|does not exist/i.test(result.error.message)) {
+      return { data: null, error: null };
+    }
+    return result;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unable to load seller bank details.';
+    if (/column .*bank_name.* does not exist|does not exist/i.test(message)) {
+      return { data: null, error: null };
+    }
+    return { data: null, error: { message } };
+  }
 }

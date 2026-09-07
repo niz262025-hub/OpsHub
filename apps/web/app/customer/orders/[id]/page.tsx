@@ -86,15 +86,24 @@ export default function CustomerOrderDetailPage() {
         return;
       }
 
-      const sellerBankResult = await supabase
-        .from('seller_profiles')
-        .select('bank_name, account_holder_name, account_number, payment_instructions, qr_image_url')
-        .eq('user_id', data.seller_id)
-        .maybeSingle();
+      let sellerBankResult: { data: any; error: any } | null = null;
+      try {
+        sellerBankResult = await supabase
+          .from('seller_profiles')
+          .select('bank_name, account_holder_name, account_number, payment_instructions, qr_image_url')
+          .eq('user_id', data.seller_id)
+          .maybeSingle();
+      } catch {
+        sellerBankResult = { data: null, error: null };
+      }
+
+      if (sellerBankResult && sellerBankResult.error && /column .*bank_name.* does not exist|does not exist/i.test(sellerBankResult.error.message)) {
+        sellerBankResult = { data: null, error: null };
+      }
 
       const orderWithSellerDetails = {
         ...data,
-        seller_profiles: sellerBankResult.data ?? null,
+        seller_profiles: sellerBankResult?.data ?? null,
       } as OrderDetailRow;
 
       setOrder(orderWithSellerDetails);
