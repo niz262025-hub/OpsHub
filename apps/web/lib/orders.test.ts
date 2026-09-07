@@ -5,6 +5,7 @@ import {
   PAYMENT_STATUSES,
   calculateOrderTotals,
   canSellerAccessOrder,
+  isMissingSchemaColumnError,
   isOrderTransitionAllowed,
   isValidOrderStatus,
   isValidPaymentStatus,
@@ -83,5 +84,11 @@ describe('order lifecycle state machine and inventory safety', () => {
     expect(canSellerAccessOrder({ id: '', seller_id: 'seller-1' }, 'seller-1')).toBe(false);
     expect(canSellerAccessOrder({ id: 'order-1', seller_id: '' }, 'seller-1')).toBe(false);
     expect(canSellerAccessOrder({ id: 'order-1', seller_id: 'seller-2' }, 'seller-1')).toBe(false);
+  });
+
+  it('detects schema drift for missing order columns so the UI can fall back safely', () => {
+    expect(isMissingSchemaColumnError('column orders.payment_proof_url does not exist')).toBe(true);
+    expect(isMissingSchemaColumnError('some other database error')).toBe(false);
+    expect(isMissingSchemaColumnError(null)).toBe(false);
   });
 });

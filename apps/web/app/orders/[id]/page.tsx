@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { getCurrentUserProfileRole, getSession } from '@/lib/auth';
 import { getManualPaymentSummary } from '@/lib/manual-payment';
-import { canSellerAccessOrder } from '@/lib/orders';
+import { canSellerAccessOrder, isMissingSchemaColumnError } from '@/lib/orders';
 import { getSupabaseBrowserClient } from '@/lib/supabase';
 
 type SellerOrderDetailRow = {
@@ -41,11 +41,11 @@ export default function SellerOrderDetailPage() {
     let active = true;
 
     async function loadOrder() {
-      const { data: sessionData } = await getSession();
+      const { data: sessionData, error: sessionError } = await getSession();
       if (!active) return;
 
       const userId = sessionData.session?.user?.id;
-      if (!userId) {
+      if (sessionError || !userId) {
         router.replace('/auth/login');
         return;
       }
@@ -53,7 +53,7 @@ export default function SellerOrderDetailPage() {
       const profile = await getCurrentUserProfileRole();
       if (!active) return;
 
-      if (profile.role !== 'SELLER') {
+      if (profile.error || profile.role !== 'SELLER') {
         router.replace('/auth/login');
         return;
       }
@@ -65,13 +65,33 @@ export default function SellerOrderDetailPage() {
         return;
       }
 
-      const { data, error: fetchError } = await supabase
+      const baseOrderSelect = 'id, buyer_id, seller_id, product_id, quantity, unit_price, subtotal, total, currency, order_status, payment_status, created_at, products(name, id), profiles!orders_buyer_id_fkey(full_name)';
+      const enhancedOrderSelect = `${baseOrderSelect}, payment_proof_url, payment_reference, payment_transfer_date`;
+
+      let data: SellerOrderDetailRow | null = null;
+      let fetchError: { message: string } | null = null;
+
+      const primaryQuery = await supabase
         .from('orders')
-        .select('id, buyer_id, seller_id, product_id, quantity, unit_price, subtotal, total, currency, order_status, payment_status, created_at, products(name, id), profiles!orders_buyer_id_fkey(full_name), payment_proof_url, payment_reference, payment_transfer_date')
+        .select(enhancedOrderSelect)
         .eq('id', params.id)
         .maybeSingle();
 
+      data = primaryQuery.data as SellerOrderDetailRow | null;
+      fetchError = primaryQuery.error;
+
       if (!active) return;
+
+      if (fetchError && isMissingSchemaColumnError(fetchError.message)) {
+        const fallbackQuery = await supabase
+          .from('orders')
+          .select(baseOrderSelect)
+          .eq('id', params.id)
+          .maybeSingle();
+
+        data = fallbackQuery.data as SellerOrderDetailRow | null;
+        fetchError = fallbackQuery.error;
+      }
 
       if (fetchError) {
         setError(fetchError.message);

@@ -38,6 +38,10 @@ export function canSellerAccessOrder(order: SellerOrderAccessTarget, sellerId: s
   return Boolean(order && order.id && order.seller_id && sellerId && order.seller_id === sellerId);
 }
 
+export function isMissingSchemaColumnError(message?: string | null): boolean {
+  return Boolean(message && /column .* does not exist|does not exist/i.test(message));
+}
+
 export function calculateOrderTotals(unitPriceCents: number, quantity: number): OrderTotals {
   if (!Number.isFinite(unitPriceCents) || unitPriceCents < 0) {
     throw new Error('Unit price must be a non-negative number of cents');
