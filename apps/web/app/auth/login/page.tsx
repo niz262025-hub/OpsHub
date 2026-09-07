@@ -43,6 +43,8 @@ export default function LoginPage() {
         setLoading(false);
         return;
       }
+    } else if (profile.role === 'CUSTOMER') {
+      router.push('/customer/orders');
     } else if (profile.accountStatus === 'SUSPENDED') {
       router.push('/account/suspended');
     } else if (profile.verificationStatus === 'VERIFIED') {

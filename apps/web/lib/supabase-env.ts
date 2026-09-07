@@ -12,6 +12,10 @@ function getNonEmptyString(env: Partial<NodeJS.ProcessEnv>, keys: string[]) {
   return undefined;
 }
 
+function isProductionLikeEnvironment(env: Partial<NodeJS.ProcessEnv>) {
+  return env.VERCEL_ENV === 'production' || env.NODE_ENV === 'production';
+}
+
 export function resolveSupabasePublicKey(env: Partial<NodeJS.ProcessEnv> = process.env) {
   const value = getNonEmptyString(env, ['NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY', 'NEXT_PUBLIC_SUPABASE_ANON_KEY']);
 
@@ -19,7 +23,7 @@ export function resolveSupabasePublicKey(env: Partial<NodeJS.ProcessEnv> = proce
     return value;
   }
 
-  if (process.env.VERCEL_ENV || process.env.NODE_ENV === 'production') {
+  if (isProductionLikeEnvironment(env)) {
     return FALLBACK_SUPABASE_PUBLIC_KEY;
   }
 
@@ -33,7 +37,7 @@ export function resolveSupabaseUrl(env: Partial<NodeJS.ProcessEnv> = process.env
     return value;
   }
 
-  if (process.env.VERCEL_ENV || process.env.NODE_ENV === 'production') {
+  if (isProductionLikeEnvironment(env)) {
     return FALLBACK_SUPABASE_URL;
   }
 
