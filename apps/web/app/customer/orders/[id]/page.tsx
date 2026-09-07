@@ -65,7 +65,7 @@ export default function CustomerOrderDetailPage() {
 
       const { data, error: fetchError } = await supabase
         .from('orders')
-        .select('id, buyer_id, seller_id, product_id, quantity, unit_price, subtotal, total, currency, order_status, payment_status, created_at, products(name, id), seller_profiles!orders_seller_id_fkey(bank_name, account_holder_name, account_number, payment_instructions, qr_image_url)')
+        .select('id, buyer_id, seller_id, product_id, quantity, unit_price, subtotal, total, currency, order_status, payment_status, created_at, products(name, id)')
         .eq('id', params.id)
         .eq('buyer_id', userId)
         .maybeSingle();
@@ -86,7 +86,18 @@ export default function CustomerOrderDetailPage() {
         return;
       }
 
-      setOrder(data as OrderDetailRow);
+      const sellerBankResult = await supabase
+        .from('seller_profiles')
+        .select('bank_name, account_holder_name, account_number, payment_instructions, qr_image_url')
+        .eq('user_id', data.seller_id)
+        .maybeSingle();
+
+      const orderWithSellerDetails = {
+        ...data,
+        seller_profiles: sellerBankResult.data ?? null,
+      } as OrderDetailRow;
+
+      setOrder(orderWithSellerDetails);
       setLoading(false);
     }
 
