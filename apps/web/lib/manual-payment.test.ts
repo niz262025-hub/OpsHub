@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  canBuyerSubmitTransferProof,
   canSubmitManualTransferProof,
   canVerifyManualTransfer,
   getManualPaymentSummary,
@@ -104,6 +105,47 @@ describe('manual bank transfer workflow', () => {
     ).toBe(true);
   });
 
+  it('allows the correct buyer to submit proof and blocks non-buyers or status tampering', () => {
+    expect(
+      canBuyerSubmitTransferProof({
+        actorId: 'buyer-1',
+        buyerId: 'buyer-1',
+        sellerId: 'seller-1',
+        orderStatus: 'PENDING_PAYMENT',
+        paymentStatus: 'PENDING',
+        proofUrl: 'https://example.com/proof.jpg',
+        transferReference: 'T123456',
+        transferDate: '2026-09-03T09:00:00.000Z',
+      }),
+    ).toBe(true);
+
+    expect(
+      canBuyerSubmitTransferProof({
+        actorId: 'seller-1',
+        buyerId: 'buyer-1',
+        sellerId: 'seller-1',
+        orderStatus: 'PENDING_PAYMENT',
+        paymentStatus: 'PENDING',
+        proofUrl: 'https://example.com/proof.jpg',
+        transferReference: 'T123456',
+        transferDate: '2026-09-03T09:00:00.000Z',
+      }),
+    ).toBe(false);
+
+    expect(
+      canBuyerSubmitTransferProof({
+        actorId: 'buyer-1',
+        buyerId: 'buyer-1',
+        sellerId: 'seller-1',
+        orderStatus: 'PAID',
+        paymentStatus: 'PAID',
+        proofUrl: 'https://example.com/proof.jpg',
+        transferReference: 'T123456',
+        transferDate: '2026-09-03T09:00:00.000Z',
+      }),
+    ).toBe(false);
+  });
+
   it('allows customers to submit proof only before payment is confirmed', () => {
     expect(
       canSubmitManualTransferProof({
@@ -124,6 +166,27 @@ describe('manual bank transfer workflow', () => {
         paymentStatus: 'PAID',
       }),
     ).toBe(false);
+  });
+
+  it('requires a valid proof payload before seller verification can proceed', () => {
+    expect(
+      validateTransferProof({
+        proofUrl: '',
+        transferReference: 'REF-42',
+        transferDate: '2026-09-03T09:00:00.000Z',
+      }).valid,
+    ).toBe(false);
+
+    expect(
+      canVerifyManualTransfer({
+        actorId: 'seller-1',
+        sellerId: 'seller-1',
+        buyerId: 'buyer-1',
+        orderStatus: 'PENDING_PAYMENT',
+        paymentStatus: 'PENDING',
+        isAdmin: false,
+      }),
+    ).toBe(true);
   });
 
   it('builds a clear summary for manual payment instruction and verification state', () => {

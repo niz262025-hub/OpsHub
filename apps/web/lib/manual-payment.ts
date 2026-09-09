@@ -30,6 +30,17 @@ export type ManualTransferSubmission = {
   paymentStatus?: string | null;
 };
 
+export type BuyerManualTransferProofSubmission = {
+  actorId?: string | null;
+  buyerId?: string | null;
+  sellerId?: string | null;
+  orderStatus?: string | null;
+  paymentStatus?: string | null;
+  proofUrl?: string | null;
+  transferReference?: string | null;
+  transferDate?: string | null;
+};
+
 export type ManualPaymentSummaryInput = {
   orderStatus?: string | null;
   paymentStatus?: string | null;
@@ -109,6 +120,32 @@ export function canSubmitManualTransferProof(input: ManualTransferSubmission): b
   }
 
   return true;
+}
+
+export function canBuyerSubmitTransferProof(input: BuyerManualTransferProofSubmission): boolean {
+  const actorId = (input.actorId ?? '').trim();
+  const buyerId = (input.buyerId ?? '').trim();
+  const sellerId = (input.sellerId ?? '').trim();
+  const orderStatus = (input.orderStatus ?? '').trim();
+  const paymentStatus = (input.paymentStatus ?? '').trim();
+
+  if (!canSubmitManualTransferProof({
+    actorId,
+    buyerId,
+    sellerId,
+    orderStatus,
+    paymentStatus,
+  })) {
+    return false;
+  }
+
+  const validation = validateTransferProof({
+    proofUrl: input.proofUrl,
+    transferReference: input.transferReference,
+    transferDate: input.transferDate,
+  });
+
+  return validation.valid;
 }
 
 export function canVerifyManualTransfer(input: ManualTransferVerification): boolean {

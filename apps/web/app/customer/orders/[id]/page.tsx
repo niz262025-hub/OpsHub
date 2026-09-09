@@ -150,14 +150,20 @@ export default function CustomerOrderDetailPage() {
       setSubmittingProof(true);
       setError(null);
 
-      const { error: updateError } = await supabase.from('orders').update({
-        payment_proof_url: proofUrl,
-        payment_reference: transferReference,
-        payment_transfer_date: new Date(transferDate).toISOString(),
-      }).eq('id', order!.id);
+      const { data: rpcData, error: rpcError } = await supabase.rpc('submit_order_payment_proof', {
+        p_order_id: order!.id,
+        p_buyer_id: order!.buyer_id,
+        p_proof_url: proofUrl,
+        p_payment_reference: transferReference,
+        p_transfer_date: new Date(transferDate).toISOString(),
+      });
 
-      if (updateError) {
-        throw new Error(updateError.message);
+      if (rpcError) {
+        throw new Error(rpcError.message);
+      }
+
+      if (!rpcData) {
+        throw new Error('The payment proof could not be submitted.');
       }
 
       setProofUrl('');
