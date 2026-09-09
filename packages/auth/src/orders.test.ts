@@ -22,6 +22,10 @@ const manualTransferSql = readFileSync(
   new URL('../../../supabase/migrations/202609040001_manual_bank_transfer_support.sql', import.meta.url),
   'utf8',
 );
+const manualTransferFixSql = readFileSync(
+  new URL('../../../supabase/migrations/202609090002_manual_transfer_trigger_fix.sql', import.meta.url),
+  'utf8',
+);
 
 describe('phase 3 money, orders, and payment foundation', () => {
   it('creates the required order and payment status enums', () => {
@@ -79,5 +83,7 @@ describe('phase 3 money, orders, and payment foundation', () => {
     expect(manualTransferSql).toContain('if p_verifier_id is distinct from auth.uid() and not public.user_is_active_admin() then');
     expect(manualTransferSql).toContain('finance_records_manual_transfer_unique');
     expect(manualTransferSql).toContain('on conflict (order_id, direction, transaction_reference) do nothing');
+    expect(manualTransferFixSql).toContain("current_setting('app.allow_manual_transfer_payment', true) = 'true'");
+    expect(manualTransferFixSql).toContain('Client payment updates are not permitted');
   });
 });
