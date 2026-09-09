@@ -18,6 +18,10 @@ const liveHardeningSql = readFileSync(
   'utf8',
 );
 const migrationSql = `${baseMigrationSql}\n${inventoryFixSql}\n${inventoryHardeningSql}\n${liveHardeningSql}`;
+const manualTransferSql = readFileSync(
+  new URL('../../../supabase/migrations/202609040001_manual_bank_transfer_support.sql', import.meta.url),
+  'utf8',
+);
 
 describe('phase 3 money, orders, and payment foundation', () => {
   it('creates the required order and payment status enums', () => {
@@ -67,5 +71,13 @@ describe('phase 3 money, orders, and payment foundation', () => {
     expect(migrationSql).toContain('drop policy if exists "orders_delete_own_or_admin" on public.orders;');
     expect(migrationSql).toContain('Order buyer is immutable');
     expect(migrationSql).toContain('Order totals are server-controlled');
+  });
+
+  it('restricts manual transfer verification to the seller or admin and makes finance records idempotent', () => {
+    expect(manualTransferSql).toContain('Authentication required');
+    expect(manualTransferSql).toContain('if p_seller_id is distinct from auth.uid() and not public.user_is_active_admin() then');
+    expect(manualTransferSql).toContain('if p_verifier_id is distinct from auth.uid() and not public.user_is_active_admin() then');
+    expect(manualTransferSql).toContain('finance_records_manual_transfer_unique');
+    expect(manualTransferSql).toContain('on conflict (order_id, direction, transaction_reference) do nothing');
   });
 });

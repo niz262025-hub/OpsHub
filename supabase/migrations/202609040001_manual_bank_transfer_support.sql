@@ -12,6 +12,9 @@ alter table public.orders
   add column if not exists payment_verified_by uuid references public.profiles(id) on delete set null,
   add column if not exists payment_verified_at timestamptz;
 
+create unique index if not exists finance_records_manual_transfer_unique
+  on public.finance_records (order_id, direction, transaction_reference);
+
 create or replace function public.enforce_order_security()
 returns trigger
 language plpgsql
@@ -19,6 +22,10 @@ security definer
 set search_path = public
 as $$
 begin
+  if auth.uid() is null then
+    raise exception 'Authentication required';
+  end if;
+
   if tg_op = 'UPDATE' then
     if new.buyer_id is distinct from old.buyer_id then
       raise exception 'Order buyer is immutable';
@@ -45,12 +52,14 @@ begin
     end if;
 
     if new.payment_status is distinct from old.payment_status then
-      if auth.uid() is not distinct from old.buyer_id then
+      if current_setting('app.allow_manual_transfer_payment', true) = 'true' and (
+        auth.uid() = old.seller_id or public.user_is_active_admin()
+      ) then
         null;
-      elsif auth.uid() is not distinct from old.seller_id then
+      elsif public.user_is_active_admin() then
         null;
-      elsif not public.user_is_active_admin() then
-        raise exception 'Only the buyer, seller, or an active admin may update payment status';
+      else
+        raise exception 'Payment status changes are server-controlled';
       end if;
     end if;
 
@@ -72,6 +81,10 @@ as $$
 declare
   updated_order public.orders;
 begin
+  if auth.uid() is null then
+    raise exception 'Authentication required';
+  end if;
+
   if p_order_id is null then
     raise exception 'Order is required';
   end if;
@@ -82,6 +95,14 @@ begin
 
   if p_verifier_id is null then
     raise exception 'Verifier is required';
+  end if;
+
+  if p_verifier_id is distinct from auth.uid() and not public.user_is_active_admin() then
+    raise exception 'Only the active verifier may confirm manual transfer payment';
+  end if;
+
+  if p_seller_id is distinct from auth.uid() and not public.user_is_active_admin() then
+    raise exception 'Only the seller or an active admin may verify manual transfer payment';
   end if;
 
   select *
@@ -99,14 +120,22 @@ begin
     return updated_order;
   end if;
 
+  if updated_order.payment_proof_url is null or updated_order.payment_proof_url = '' then
+    raise exception 'Payment proof is required before manual verification';
+  end if;
+
+  perform set_config('app.allow_manual_transfer_payment', 'true', true);
+
   update public.orders
      set order_status = 'PAID',
          payment_status = 'PAID',
-         payment_verified_by = p_verifier_id,
+         payment_verified_by = auth.uid(),
          payment_verified_at = now()
    where id = p_order_id
      and seller_id = p_seller_id
    returning * into updated_order;
+
+  perform set_config('app.allow_manual_transfer_payment', 'false', true);
 
   insert into public.finance_records (
     seller_id,
@@ -124,7 +153,7 @@ begin
     'SALE',
     'PAID',
     'MANUAL_TRANSFER_' || updated_order.id::text
-  ) on conflict do nothing;
+  ) on conflict (order_id, direction, transaction_reference) do nothing;
 
   return updated_order;
 end;
