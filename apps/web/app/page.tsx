@@ -139,89 +139,74 @@ export default function HomePage() {
 
         <nav className="market-links" aria-label="Primary navigation">
           <Link href="/marketplace">Marketplace</Link>
-          <Link href="/marketplace">Categories</Link>
-          <Link href="/auth/register">Become a Seller</Link>
-          <Link href="/marketplace">How It Works</Link>
-          <Link href="/marketplace">Pricing</Link>
+          <Link href="/marketplace">Catalog</Link>
+          <Link href="/auth/register">Seller tools</Link>
+          <Link href="/marketplace">How it works</Link>
+          <Link href="/marketplace">Support</Link>
         </nav>
 
         <div className="market-actions">
           <button type="button" className="nav-search">Search</button>
-          <Link href="/auth/login" className="nav-login">Login</Link>
-          <Link href="/auth/register" className="nav-signup">Sign Up</Link>
+          <Link href="/auth/login" className="nav-login">Log in</Link>
+          <Link href="/auth/register" className="nav-signup">Create account</Link>
         </div>
       </header>
 
       <section className="hero-section">
         <div className="hero-copy">
-          <span className="eyebrow badge">Trusted marketplace</span>
-          <h1>Real Products. Real Businesses. Only on OpsHub.</h1>
+          <span className="eyebrow badge">OpsHub platform</span>
+          <h1>Built for modern commerce operations.</h1>
           <p>
-            Discover products from trusted sellers and grow your business with OpsHub.
+            Manage listings, orders and seller workflows from one operational workspace designed for local commerce.
           </p>
 
           <div className="hero-actions">
             <Link href="/marketplace" className="primary-btn">Browse Marketplace</Link>
-            <Link href="/auth/register" className="secondary-btn">Become a Seller</Link>
-          </div>
-
-          <div className="hero-stats">
-            <div>
-              <strong>4.9/5</strong>
-              <span>Buyer rating</span>
-            </div>
-            <div>
-              <strong>12k+</strong>
-              <span>Products</span>
-            </div>
-            <div>
-              <strong>1.2k+</strong>
-              <span>Verified sellers</span>
-            </div>
+            <Link href="/auth/register" className="secondary-btn">Start selling</Link>
           </div>
         </div>
 
         <div className="hero-visual" aria-label="Marketplace illustration">
           <div className="visual-card large-card">
-            <div className="mini-tag">Popular now</div>
+            <div className="mini-tag">Marketplace preview</div>
             <div className="product-visual product-visual-one" />
             <div className="product-caption">
-              <strong>Daily essentials</strong>
-              <span>RM 49.90</span>
+              <strong>Catalog layout</strong>
+              <span>Preview</span>
             </div>
           </div>
 
           <div className="visual-card small-card">
             <div className="product-visual product-visual-two" />
             <div className="product-caption">
-              <strong>Local seller</strong>
-              <span>Verified</span>
+              <strong>Seller tools</strong>
+              <span>Operations</span>
             </div>
           </div>
 
-          <div className="floating-bubble bubble-one">+240 orders</div>
-          <div className="floating-bubble bubble-two">Secure shipping</div>
+          <div className="floating-bubble bubble-one">Order tracking</div>
+          <div className="floating-bubble bubble-two">Seller onboarding</div>
         </div>
       </section>
 
       <section className="feature-strip">
-        <div><span>Verified sellers</span></div>
-        <div><span>Secure checkout</span></div>
-        <div><span>Fast local shipping</span></div>
-        <div><span>Trusted by buyers</span></div>
+        <div><span>Seller onboarding</span></div>
+        <div><span>Order workflows</span></div>
+        <div><span>Catalog tools</span></div>
+        <div><span>Commerce dashboards</span></div>
       </section>
 
       <section className="marketplace-section">
         <div className="section-heading">
           <div>
-            <span className="eyebrow">Featured products</span>
-            <h2>Fresh picks from trusted sellers</h2>
+            <span className="eyebrow">Marketplace</span>
+            <h2>Live listings, when available</h2>
           </div>
-          <Link href="/marketplace">View all</Link>
+          <Link href="/marketplace">Open marketplace</Link>
         </div>
 
         {loadingProducts ? (
-          <p className="muted-copy">Loading featured products…</p>
+          <p className="muted-copy">Loading marketplace listings…</p>
         ) : (
           <div className="product-grid">
             {featuredProducts.length > 0 ? (
@@ -230,15 +215,15 @@ export default function HomePage() {
                   <div className="product-image" style={{ backgroundImage: `url(${product.imageUrl})` }} />
                   <div className="product-card-body">
                     <div className="product-badges">
-                      <span className="mini-badge">Verified</span>
-                      <span className="mini-badge subtle">{product.stock > 0 ? 'In stock' : 'Sold out'}</span>
+                      <span className="mini-badge">Marketplace</span>
+                      <span className="mini-badge subtle">{product.stock > 0 ? 'Available' : 'Unavailable'}</span>
                     </div>
                     <h3>{product.name}</h3>
                     <p className="seller-name">{product.sellerName}</p>
                     <p className="product-description">{product.description}</p>
                     <div className="product-bottom-row">
                       <strong>RM {product.price.toFixed(2)}</strong>
-                      <span>⭐ 4.8</span>
+                      <span>Listing</span>
                     </div>
                     <div className="card-actions">
                       <Link href={`/products/${product.id}`} className="primary-link-small">View Product</Link>
@@ -248,7 +233,7 @@ export default function HomePage() {
                 </article>
               ))
             ) : (
-              <div className="empty-state">No public products are currently available. Please check back soon.</div>
+              <div className="empty-state">No public marketplace listings are currently available. Please check back soon.</div>
             )}
           </div>
         )}
@@ -274,18 +259,18 @@ export default function HomePage() {
       <section className="trust-section">
         <div className="section-heading compact">
           <div>
-            <span className="eyebrow">Why buy on OpsHub?</span>
-            <h2>Marketplace trust, built in</h2>
+            <span className="eyebrow">Why OpsHub?</span>
+            <h2>Operational tools for commerce teams</h2>
           </div>
         </div>
 
         <div className="trust-grid">
           {[
-            ['Verified Sellers', 'Shop with businesses that are reviewed and approved.'],
-            ['Secure Orders', 'Checkout and transaction steps are protected for real purchases.'],
-            ['Real Products', 'Browse actual listings from active marketplace sellers.'],
-            ['Easy Payment', 'Support smooth payment flows and clear order status updates.'],
-            ['Shipping Support', 'Track and manage order fulfillment from seller to buyer.'],
+            ['Seller onboarding', 'Guide businesses through setup, verification and account readiness.'],
+            ['Order workflows', 'Coordinate transactions, fulfillment updates and status tracking.'],
+            ['Catalog management', 'Organize listings and product information in a central workspace.'],
+            ['Payments', 'Support account-ready checkout flows and payment coordination.'],
+            ['Operations dashboards', 'Track key business activity with clear, role-based views.'],
           ].map(([title, text]) => (
             <div key={title} className="trust-card">
               <div className="trust-icon">✓</div>
@@ -299,12 +284,12 @@ export default function HomePage() {
       <section className="seller-cta">
         <div>
           <span className="eyebrow">Start selling</span>
-          <h2>Start Selling on OpsHub</h2>
+          <h2>Launch your OpsHub seller account</h2>
           <p>
-            List your products, manage your orders and grow your marketplace business with a platform built for trusted sellers.
+            Set up your business profile, publish your listings and manage your operations in a single commerce workspace.
           </p>
         </div>
-        <Link href="/auth/register" className="primary-btn large-btn">Become a Seller</Link>
+        <Link href="/auth/register" className="primary-btn large-btn">Start selling</Link>
       </section>
 
       <footer className="home-footer">
