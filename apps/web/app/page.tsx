@@ -11,7 +11,7 @@ type FeaturedProduct = {
   name: string;
   description: string;
   price: number;
-  imageUrl: string;
+  imageUrl?: string | null;
   sellerName: string;
   stock: number;
 };
@@ -102,19 +102,19 @@ export default function HomePage() {
         if (!active) return;
 
         if (!error && data) {
-          setFeaturedProducts(
-            data.map((product) => ({
+          const validPublicProducts = data
+            .filter((product) => typeof product.image_url === 'string' && product.image_url.trim().length > 0)
+            .map((product) => ({
               id: product.id,
               name: product.name,
-              description: product.description || 'Marketplace product from a trusted seller.',
+              description: product.description || 'Marketplace product listing.',
               price: Number(product.price ?? 0),
-              imageUrl:
-                product.image_url ||
-                'https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=900&q=80',
-              sellerName: product.seller_id ? `Seller ${String(product.seller_id).slice(0, 6)}` : 'Verified seller',
+              imageUrl: product.image_url,
+              sellerName: product.seller_id ? `Seller ${String(product.seller_id).slice(0, 6)}` : 'Seller',
               stock: Number(product.quantity ?? 0),
-            })),
-          );
+            }));
+
+          setFeaturedProducts(validPublicProducts);
         }
       } finally {
         if (active) setLoadingProducts(false);
@@ -212,7 +212,13 @@ export default function HomePage() {
             {featuredProducts.length > 0 ? (
               featuredProducts.map((product) => (
                 <article key={product.id} className="product-card">
-                  <div className="product-image" style={{ backgroundImage: `url(${product.imageUrl})` }} />
+                  {product.imageUrl ? (
+                    <div className="product-image" style={{ backgroundImage: `url(${product.imageUrl})` }} />
+                  ) : (
+                    <div className="product-image product-image-preview">
+                      <span>Listing preview</span>
+                    </div>
+                  )}
                   <div className="product-card-body">
                     <div className="product-badges">
                       <span className="mini-badge">Marketplace</span>
@@ -233,7 +239,15 @@ export default function HomePage() {
                 </article>
               ))
             ) : (
-              <div className="empty-state">No public marketplace listings are currently available. Please check back soon.</div>
+              <div className="empty-state preview-state">
+                <div className="preview-illustration" aria-hidden="true">
+                  <div className="preview-window" />
+                  <div className="preview-card" />
+                  <div className="preview-dot" />
+                </div>
+                <strong>Marketplace preview</strong>
+                <p>No public marketplace listings are currently available.</p>
+              </div>
             )}
           </div>
         )}

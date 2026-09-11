@@ -276,12 +276,12 @@ button, input { font: inherit; }
 }
 
 .product-visual-one {
-  background-image: linear-gradient(135deg, rgba(255, 154, 61, 0.3), rgba(111, 95, 231, 0.2)), url('https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=900&q=80');
+  background: linear-gradient(135deg, rgba(255, 77, 161, 0.18), rgba(111, 95, 231, 0.16), rgba(255, 255, 255, 0.9));
 }
 
 .product-visual-two {
-  background-image: linear-gradient(135deg, rgba(255, 77, 161, 0.25), rgba(255, 154, 61, 0.18)), url('https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=900&q=80');
   height: 150px;
+  background: linear-gradient(135deg, rgba(255, 154, 61, 0.2), rgba(111, 95, 231, 0.14), rgba(255, 255, 255, 0.9));
 }
 
 .product-caption {
@@ -552,6 +552,75 @@ button, input { font: inherit; }
   color: var(--ops-muted);
   text-align: center;
   box-shadow: inset 0 0 0 1px rgba(255,255,255,0.35);
+}
+
+.preview-state {
+  display: grid;
+  place-items: center;
+  gap: 1rem;
+  padding: 2.25rem 1.5rem;
+  background: linear-gradient(135deg, rgba(255, 77, 161, 0.06), rgba(111, 95, 231, 0.05), rgba(255,255,255,0.9));
+}
+
+.preview-state strong {
+  color: var(--ops-ink);
+  font-size: 1.15rem;
+}
+
+.preview-state p {
+  margin: 0;
+  color: var(--ops-muted);
+}
+
+.preview-illustration {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: min(100%, 300px);
+  height: 150px;
+  border-radius: 24px;
+  background: rgba(255,255,255,0.8);
+  border: 1px solid rgba(23, 27, 53, 0.08);
+  box-shadow: var(--ops-shadow-soft);
+}
+
+.preview-window {
+  position: absolute;
+  width: 62%;
+  height: 56%;
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(255, 77, 161, 0.24), rgba(111, 95, 231, 0.12));
+  transform: translateX(-18px) translateY(-8px);
+}
+
+.preview-card {
+  position: absolute;
+  right: 22%;
+  bottom: 18%;
+  width: 38%;
+  height: 28%;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(255, 154, 61, 0.25), rgba(255, 255, 255, 0.88));
+  border: 1px solid rgba(23, 27, 53, 0.06);
+}
+
+.preview-dot {
+  position: absolute;
+  right: 18%;
+  top: 18%;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--ops-primary);
+  box-shadow: 0 0 0 8px rgba(255, 77, 161, 0.12);
+}
+
+.product-image-preview {
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, rgba(255, 77, 161, 0.14), rgba(111, 95, 231, 0.08), rgba(255,255,255,0.9));
+  color: var(--ops-ink);
+  font-weight: 700;
 }
 
 @media (max-width: 1024px) {
