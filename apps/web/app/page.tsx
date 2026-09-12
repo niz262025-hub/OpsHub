@@ -162,7 +162,7 @@ export default function HomePage() {
 
           <div className="hero-actions">
             <Link href="/marketplace" className="primary-btn">Browse Marketplace</Link>
-            <Link href="/auth/register" className="secondary-btn">Start selling</Link>
+            <Link href="/auth/register" className="secondary-btn">Become a seller</Link>
           </div>
         </div>
 

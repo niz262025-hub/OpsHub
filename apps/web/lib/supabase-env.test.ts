@@ -19,9 +19,9 @@ describe('Supabase environment resolution', () => {
     expect(resolveSupabasePublicKey(env)).toBe('publishable-key');
   });
 
-  it('refuses to silently fall back to the placeholder Supabase project', () => {
-    expect(() => resolveSupabaseUrl({})).toThrow(/NEXT_PUBLIC_SUPABASE_URL/);
-    expect(() => resolveSupabasePublicKey({})).toThrow(/NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY/);
+  it('uses the canonical public browser config when no env override is present', () => {
+    expect(resolveSupabaseUrl({})).toBe('https://iytiyugzmlsofwtortth.supabase.co');
+    expect(resolveSupabasePublicKey({})).toBe('sb_publishable_3R0FmgiwBuO-ki87YhkLlA_UqjIV7S-');
   });
 
   it('keeps the server-side config aligned with the current env model', () => {
@@ -35,5 +35,11 @@ describe('Supabase environment resolution', () => {
     expect(resolveServerSupabaseUrl(env)).toBe('https://staging.supabase.co');
     expect(resolveServerSupabaseKey(env)).toBe('server-anon-key');
     expect(resolveProjectId(env)).toBe('abcd1234');
+  });
+
+  it('fails fast when the required server env values are absent', () => {
+    expect(() => resolveServerSupabaseUrl({ SUPABASE_URL: '' })).toThrow(/SUPABASE_URL/i);
+    expect(() => resolveServerSupabaseKey({ SUPABASE_ANON_KEY: '' })).toThrow(/SUPABASE_ANON_KEY/i);
+    expect(() => resolveProjectId({ SUPABASE_PROJECT_ID: '' })).toThrow(/SUPABASE_PROJECT_ID/i);
   });
 });

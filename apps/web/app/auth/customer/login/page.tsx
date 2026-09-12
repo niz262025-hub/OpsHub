@@ -52,7 +52,7 @@ export default function CustomerLoginPage() {
       return;
     }
 
-    router.push(redirectPath);
+    router.replace(redirectPath);
     router.refresh();
     setLoading(false);
   }

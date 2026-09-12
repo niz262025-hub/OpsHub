@@ -164,48 +164,80 @@ export function getAuthRedirectPathForRole({
   return null;
 }
 
+async function waitForAuthenticatedUser(maxAttempts = 5) {
+  const supabase = getSupabaseBrowserClient();
+
+  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+
+    if (sessionError) {
+      throw sessionError;
+    }
+
+    const userId = sessionData.session?.user?.id;
+    if (userId) {
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (!userError && userData.user) {
+        return userData.user;
+      }
+    }
+
+    if (attempt < maxAttempts - 1) {
+      await new Promise((resolve) => setTimeout(resolve, 250 * (attempt + 1)));
+    }
+  }
+
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  if (userError || !userData.user) {
+    throw userError ?? new Error('No authenticated user found');
+  }
+
+  return userData.user;
+}
+
 export async function getCurrentUserProfileRole() {
   const supabase = getSupabaseBrowserClient();
-  const { data: userData, error: userError } = await supabase.auth.getUser();
 
-  if (userError || !userData.user) {
+  try {
+    const user = await waitForAuthenticatedUser();
+
+    const { data: profileData, error: profileError } = await supabase
+      .from('profiles')
+      .select('role, account_status')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    if (profileError) {
+      return normalizeProfileRoleResult({ profileData: null, profileError, sellerData: null, sellerError: null });
+    }
+
+    const role = profileData?.role ?? null;
+    let sellerData: { verification_status?: string | null } | null = null;
+    let sellerError: Error | null = null;
+
+    if (role === 'SELLER') {
+      const result = await supabase
+        .from('seller_profiles')
+        .select('verification_status')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      sellerData = result.data as { verification_status?: string | null } | null;
+      sellerError = result.error ?? null;
+    }
+
+    return normalizeProfileRoleResult({
+      profileData,
+      profileError: null,
+      sellerData,
+      sellerError,
+    });
+  } catch (error) {
     return {
       role: null,
       accountStatus: null,
       verificationStatus: null,
-      error: userError ?? new Error('No authenticated user found'),
+      error: error instanceof Error ? error : new Error('Unable to resolve authenticated profile'),
     };
   }
-
-  const { data: profileData, error: profileError } = await supabase
-    .from('profiles')
-    .select('role, account_status')
-    .eq('id', userData.user.id)
-    .maybeSingle();
-
-  if (profileError) {
-    return normalizeProfileRoleResult({ profileData: null, profileError, sellerData: null, sellerError: null });
-  }
-
-  const role = profileData?.role ?? null;
-  let sellerData: { verification_status?: string | null } | null = null;
-  let sellerError: Error | null = null;
-
-  if (role === 'SELLER') {
-    const result = await supabase
-      .from('seller_profiles')
-      .select('verification_status')
-      .eq('user_id', userData.user.id)
-      .maybeSingle();
-
-    sellerData = result.data as { verification_status?: string | null } | null;
-    sellerError = result.error ?? null;
-  }
-
-  return normalizeProfileRoleResult({
-    profileData,
-    profileError: null,
-    sellerData,
-    sellerError,
-  });
 }
