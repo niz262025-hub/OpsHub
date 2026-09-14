@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { getAuthRedirectPathForRole, normalizeProfileRoleResult } from './auth';
+import { getAuthRedirectPathForRole, getSellerProfileStatusField, normalizeProfileRoleResult } from './auth';
 
 describe('normalizeProfileRoleResult', () => {
   it('preserves an authenticated CUSTOMER role when the seller profile lookup is empty or denied', () => {
@@ -16,7 +16,9 @@ describe('normalizeProfileRoleResult', () => {
     expect(result.verificationStatus).toBeNull();
   });
 
-  it('keeps the seller verification status when the seller profile exists', () => {
+  it('uses only the canonical seller verification field and resolves an active SELLER correctly', () => {
+    expect(getSellerProfileStatusField()).toBe('verification_status');
+
     const result = normalizeProfileRoleResult({
       profileData: { role: 'SELLER', account_status: 'ACTIVE' },
       sellerData: { verification_status: 'VERIFIED' },
@@ -24,7 +26,10 @@ describe('normalizeProfileRoleResult', () => {
     });
 
     expect(result.role).toBe('SELLER');
+    expect(result.accountStatus).toBe('ACTIVE');
     expect(result.verificationStatus).toBe('VERIFIED');
+    expect(result.error).toBeNull();
+    expect(getAuthRedirectPathForRole({ role: 'SELLER', accountStatus: 'ACTIVE', verificationStatus: 'VERIFIED' })).toBe('/marketplace');
   });
 
   it('uses the canonical customer redirect path for customer roles', () => {

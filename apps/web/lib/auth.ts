@@ -78,6 +78,10 @@ export async function getCurrentUser() {
   return supabase.auth.getUser();
 }
 
+export function getSellerProfileStatusField(): string {
+  return 'verification_status';
+}
+
 export function normalizeProfileRoleResult({
   profileData,
   profileError,
@@ -218,7 +222,7 @@ export async function getCurrentUserProfileRole() {
     if (role === 'SELLER') {
       const result = await supabase
         .from('seller_profiles')
-        .select('verification_status')
+        .select(getSellerProfileStatusField())
         .eq('user_id', user.id)
         .maybeSingle();
 
