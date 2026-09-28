@@ -56,18 +56,24 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_SUPABASE_URL:
       process.env.NEXT_PUBLIC_SUPABASE_URL ??
       fileEnv.NEXT_PUBLIC_SUPABASE_URL ??
+      process.env.SUPABASE_URL ??
+      fileEnv.SUPABASE_URL ??
       fallbackSupabaseUrl,
     NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:
       process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
       fileEnv.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
       fileEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
+      process.env.SUPABASE_ANON_KEY ??
+      fileEnv.SUPABASE_ANON_KEY ??
       fallbackSupabasePublicKey,
     NEXT_PUBLIC_SUPABASE_ANON_KEY:
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
       fileEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
       process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
       fileEnv.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
+      process.env.SUPABASE_ANON_KEY ??
+      fileEnv.SUPABASE_ANON_KEY ??
       fallbackSupabasePublicKey,
     SUPABASE_URL: process.env.SUPABASE_URL ?? fileEnv.SUPABASE_URL ?? fallbackSupabaseUrl,
     SUPABASE_ANON_KEY:
@@ -75,6 +81,8 @@ const nextConfig: NextConfig = {
       fileEnv.SUPABASE_ANON_KEY ??
       process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
       fileEnv.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
+      fileEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
       fallbackSupabasePublicKey,
     SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY ?? fileEnv.SUPABASE_SERVICE_ROLE_KEY,
     SUPABASE_PROJECT_ID: process.env.SUPABASE_PROJECT_ID ?? fileEnv.SUPABASE_PROJECT_ID,

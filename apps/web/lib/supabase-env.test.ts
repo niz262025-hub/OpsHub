@@ -37,6 +37,16 @@ describe('Supabase environment resolution', () => {
     expect(resolveProjectId(env)).toBe('abcd1234');
   });
 
+  it('supports the repository Vercel compatibility env pattern for browser auth', () => {
+    const env = {
+      SUPABASE_URL: 'https://production.supabase.co',
+      SUPABASE_ANON_KEY: 'production-anon-key',
+    };
+
+    expect(resolveSupabaseUrl(env)).toBe('https://production.supabase.co');
+    expect(resolveSupabasePublicKey(env)).toBe('production-anon-key');
+  });
+
   it('fails fast when the required server env values are absent', () => {
     expect(() => resolveServerSupabaseUrl({ SUPABASE_URL: '' })).toThrow(/SUPABASE_URL/i);
     expect(() => resolveServerSupabaseKey({ SUPABASE_ANON_KEY: '' })).toThrow(/SUPABASE_ANON_KEY/i);

@@ -13,7 +13,11 @@ function getNonEmptyString(env: Partial<NodeJS.ProcessEnv>, keys: string[]) {
 }
 
 export function resolveSupabasePublicKey(env: Partial<NodeJS.ProcessEnv> = process.env) {
-  const value = getNonEmptyString(env, ['NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY', 'NEXT_PUBLIC_SUPABASE_ANON_KEY']);
+  const value = getNonEmptyString(env, [
+    'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
+    'NEXT_PUBLIC_SUPABASE_ANON_KEY',
+    'SUPABASE_ANON_KEY',
+  ]);
 
   if (value) {
     return value;
@@ -23,7 +27,7 @@ export function resolveSupabasePublicKey(env: Partial<NodeJS.ProcessEnv> = proce
 }
 
 export function resolveSupabaseUrl(env: Partial<NodeJS.ProcessEnv> = process.env) {
-  const value = getNonEmptyString(env, ['NEXT_PUBLIC_SUPABASE_URL']);
+  const value = getNonEmptyString(env, ['NEXT_PUBLIC_SUPABASE_URL', 'SUPABASE_URL']);
 
   if (value) {
     return value;
