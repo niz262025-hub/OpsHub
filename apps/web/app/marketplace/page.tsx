@@ -323,92 +323,146 @@ export default function MarketplacePage() {
 
       <section className="marketplace-grid">
         <div className="panel">
-          <h2>Add product</h2>
-          {loading ? <p className="muted">Loading seller products…</p> : null}
-          {error ? <p className="error-message">{error}</p> : null}
+          <div className="panel-heading">
+            <div>
+              <p className="eyebrow">Inventory</p>
+              <h2>Add product</h2>
+            </div>
+          </div>
+
+          {loading ? <div className="state-panel"><p className="muted">Loading seller products…</p></div> : null}
+          {error ? <div className="error-message" role="alert">{error}</div> : null}
+
           <form className="product-form" onSubmit={handleSubmit}>
-            <label>
-              Product name
-              <input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} placeholder="Product name" required />
+            <label htmlFor="product-name" className="field-group">
+              <span>Product name</span>
+              <input id="product-name" value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} placeholder="Product name" required />
             </label>
-            <label>
-              Product description
-              <textarea value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} placeholder="Describe the product" rows={4} required />
+
+            <label htmlFor="product-description" className="field-group">
+              <span>Product description</span>
+              <textarea id="product-description" value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} placeholder="Describe the product" rows={4} required />
             </label>
-            <div className="two-col">
-              <label>
-                Price
-                <input type="number" min="0" step="0.01" value={form.price} onChange={(event) => setForm({ ...form, price: event.target.value })} required />
+
+            <div className="form-grid">
+              <label htmlFor="product-price" className="field-group">
+                <span>Price</span>
+                <input id="product-price" type="number" min="0" step="0.01" value={form.price} onChange={(event) => setForm({ ...form, price: event.target.value })} required />
               </label>
-              <label>
-                Quantity
-                <input type="number" min="0" step="1" value={form.quantity} onChange={(event) => setForm({ ...form, quantity: event.target.value })} required />
+              <label htmlFor="product-quantity" className="field-group">
+                <span>Quantity</span>
+                <input id="product-quantity" type="number" min="0" step="1" value={form.quantity} onChange={(event) => setForm({ ...form, quantity: event.target.value })} required />
               </label>
             </div>
-            <div className="two-col">
-              <label>
-                Source
-                <select value={form.source} onChange={(event) => setForm({ ...form, source: event.target.value as Product['source'] })}>
+
+            <div className="form-grid">
+              <label htmlFor="product-source" className="field-group">
+                <span>Source</span>
+                <select id="product-source" value={form.source} onChange={(event) => setForm({ ...form, source: event.target.value as Product['source'] })}>
                   {PRODUCT_SOURCES.map((source) => (
                     <option key={source} value={source}>{source}</option>
                   ))}
                 </select>
               </label>
-              <label>
-                Status
-                <select value={form.status} onChange={(event) => setForm({ ...form, status: event.target.value as Product['status'] })}>
+              <label htmlFor="product-status" className="field-group">
+                <span>Status</span>
+                <select id="product-status" value={form.status} onChange={(event) => setForm({ ...form, status: event.target.value as Product['status'] })}>
                   {PRODUCT_STATUSES.map((status) => (
                     <option key={status} value={status}>{status}</option>
                   ))}
                 </select>
               </label>
             </div>
-            <label>
-              Product image
-              <input type="file" accept="image/*" onChange={(event) => setImageFile(event.target.files?.[0] ?? null)} />
+
+            <label htmlFor="product-image" className="field-group">
+              <span>Product image</span>
+              <input id="product-image" type="file" accept="image/*" onChange={(event) => setImageFile(event.target.files?.[0] ?? null)} />
             </label>
-            <label>
-              Image URL (optional fallback)
-              <input value={form.imageUrl} onChange={(event) => setForm({ ...form, imageUrl: event.target.value })} placeholder="https://..." />
+
+            <label htmlFor="product-image-url" className="field-group">
+              <span>Image URL (optional fallback)</span>
+              <input id="product-image-url" value={form.imageUrl} onChange={(event) => setForm({ ...form, imageUrl: event.target.value })} placeholder="https://..." />
             </label>
-            <button type="submit" disabled={saving}>{saving ? 'Saving product...' : 'Save product'}</button>
+
+            <button type="submit" className="primary-button" disabled={saving}>
+              {saving ? 'Saving product...' : 'Save product'}
+            </button>
           </form>
         </div>
 
         <div className="panel">
-          <h2>Product list</h2>
+          <div className="panel-heading">
+            <div>
+              <p className="eyebrow">Catalog</p>
+              <h2>Product list</h2>
+            </div>
+            <span className="status-pill compact">{products.length} items</span>
+          </div>
+
           <div className="product-list">
-            {products.length === 0 ? <p className="muted">No products yet. Add your first product to publish it.</p> : null}
+            {products.length === 0 ? (
+              <div className="empty-state">
+                <h3>No products yet</h3>
+                <p>Add your first product to publish it and start selling.</p>
+              </div>
+            ) : null}
+
             {products.map((product) => {
               const shareLinks = getMarketingShareLinks(product.id);
               return (
                 <article key={product.id} className="product-card">
-                  <img src={product.imageUrl} alt={product.name} />
+                  <div className="product-card-media">
+                    <img src={product.imageUrl} alt={product.name} />
+                  </div>
+
                   <div className="product-card-body">
-                    <div className="product-card-heading">
-                      <strong>{product.name}</strong>
-                      <span>{product.status}</span>
+                    <div className="product-card-header">
+                      <h3>{product.name}</h3>
+                      <span className={`status-badge ${String(product.status).toLowerCase()}`}>{product.status}</span>
                     </div>
-                    <p>{product.description}</p>
-                    <div className="product-meta">
-                      <span>${product.price.toFixed(2)}</span>
-                      <span>{product.quantity} available</span>
-                      <span>{product.source}</span>
+
+                    <p className="product-description">{product.description}</p>
+
+                    <div className="product-card-meta">
+                      <div className="meta-item">
+                        <span className="meta-label">Price</span>
+                        <span className="meta-value">${product.price.toFixed(2)}</span>
+                      </div>
+                      <div className="meta-item">
+                        <span className="meta-label">Quantity</span>
+                        <span className="meta-value">{product.quantity}</span>
+                      </div>
+                      <div className="meta-item">
+                        <span className="meta-label">Source</span>
+                        <span className="meta-value">{product.source}</span>
+                      </div>
                     </div>
+
                     <div className="product-actions">
-                      <Link href={`/products/${product.id}`}>Detail</Link>
-                      <Link href={`/marketplace/${product.id}/edit`}>Edit</Link>
+                      <Link href={`/products/${product.id}`} className="secondary-button">Detail</Link>
+                      <Link href={`/marketplace/${product.id}/edit`} className="secondary-button">Edit</Link>
                       {product.status === 'PUBLISHED' ? (
-                        <button type="button" onClick={() => togglePublish(product.id, 'DRAFT')}>Unpublish</button>
+                        <button type="button" className="secondary-button" onClick={() => togglePublish(product.id, 'DRAFT')}>
+                          Unpublish
+                        </button>
                       ) : (
-                        <button type="button" onClick={() => togglePublish(product.id, 'PUBLISHED')}>Publish</button>
+                        <button type="button" className="primary-button" onClick={() => togglePublish(product.id, 'PUBLISHED')}>
+                          Publish
+                        </button>
                       )}
-                      <button type="button" onClick={() => archiveProduct(product.id)}>Archive</button>
-                      <button type="button" onClick={() => shareProduct(product)}>Share</button>
+                      <button type="button" className="ghost-button" onClick={() => archiveProduct(product.id)}>
+                        Archive
+                      </button>
+                      <button type="button" className="ghost-button" onClick={() => shareProduct(product)}>
+                        Share
+                      </button>
                     </div>
+
                     <div className="share-links">
                       {Object.entries(shareLinks).slice(0, 4).map(([platform, link]) => (
-                        <a key={platform} href={link} target="_blank" rel="noreferrer">{platform}</a>
+                        <a key={platform} className="share-link" href={link} target="_blank" rel="noreferrer">
+                          {platform}
+                        </a>
                       ))}
                     </div>
                   </div>
@@ -423,9 +477,11 @@ export default function MarketplacePage() {
         <section className="share-banner panel">
           <h3>Generated product link</h3>
           <p>{generatedUrl}</p>
-          <div className="share-links">
+          <div className="share-links" style={{ marginTop: '0.9rem' }}>
             {Object.entries(getMarketingShareLinks(generatedUrl.split('/').pop() ?? 'prod-unknown')).map(([platform, link]) => (
-              <a key={platform} href={link} target="_blank" rel="noreferrer">{platform}</a>
+              <a key={platform} className="share-link" href={link} target="_blank" rel="noreferrer">
+                {platform}
+              </a>
             ))}
           </div>
         </section>

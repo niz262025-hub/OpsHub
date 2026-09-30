@@ -142,33 +142,58 @@ export default function AdminReviewPage() {
         </button>
       </header>
 
-      {error ? <p className="error-message">{error}</p> : null}
+      {error ? <div className="error-message" role="alert">{error}</div> : null}
 
       <section className="admin-list">
         {loading ? (
-          <p className="muted">Loading applications…</p>
+          <div className="state-panel">
+            <p className="muted">Loading applications…</p>
+          </div>
         ) : sellers.length === 0 ? (
-          <p className="muted">No sellers pending review.</p>
+          <div className="empty-state">
+            <h3>No sellers to review</h3>
+            <p>There are currently no seller applications in the queue.</p>
+          </div>
         ) : (
           sellers.map((seller) => (
             <article key={seller.id} className="review-card">
-              <div>
-                <h2>{seller.full_name}</h2>
-                <p>{seller.business_name}</p>
-                <p>{seller.email}</p>
+              <div className="review-card-header">
+                <div className="review-identity">
+                  <span className="review-label">Seller</span>
+                  <h2>{seller.full_name}</h2>
+                </div>
+                <span className={`status-badge ${String(seller.verification_status).toLowerCase()}`}>
+                  {seller.verification_status}
+                </span>
               </div>
-              <div className="status-badge">{seller.verification_status}</div>
-              <form className="review-forms" onSubmit={(event) => handleSubmit(event, seller.user_id)}>
-                <textarea
-                  value={noteDrafts[seller.user_id] ?? seller.verification_note ?? ''}
-                  onChange={(event) => setNoteDrafts((current) => ({ ...current, [seller.user_id]: event.target.value }))}
-                  rows={3}
-                  placeholder="Add verification note"
-                />
+
+              <div className="review-meta">
+                <div className="meta-item">
+                  <span className="meta-label">Business</span>
+                  <span className="meta-value">{seller.business_name}</span>
+                </div>
+                <div className="meta-item">
+                  <span className="meta-label">Email</span>
+                  <span className="meta-value">{seller.email}</span>
+                </div>
+              </div>
+
+              <form className="review-form" onSubmit={(event) => handleSubmit(event, seller.user_id)}>
+                <label htmlFor={`seller-note-${seller.user_id}`} className="field-group">
+                  <span>Verification note</span>
+                  <textarea
+                    id={`seller-note-${seller.user_id}`}
+                    value={noteDrafts[seller.user_id] ?? seller.verification_note ?? ''}
+                    onChange={(event) => setNoteDrafts((current) => ({ ...current, [seller.user_id]: event.target.value }))}
+                    rows={3}
+                    placeholder="Add verification note"
+                  />
+                </label>
+
                 <div className="review-actions">
-                  <button type="submit" data-action="APPROVE">Approve</button>
-                  <button type="submit" data-action="REJECT" className="secondary-button">Reject</button>
-                  <button type="submit" data-action="SUSPEND" className="secondary-button">Suspend</button>
+                  <button type="submit" className="primary-button" data-action="APPROVE">Approve</button>
+                  <button type="submit" className="danger-button" data-action="REJECT">Reject</button>
+                  <button type="submit" className="secondary-button" data-action="SUSPEND">Suspend</button>
                 </div>
               </form>
             </article>
