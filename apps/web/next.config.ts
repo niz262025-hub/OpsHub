@@ -50,14 +50,6 @@ const nextConfig: NextConfig = {
       fileEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
       process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
       fileEnv.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
-    SUPABASE_URL: process.env.SUPABASE_URL ?? fileEnv.SUPABASE_URL,
-    SUPABASE_ANON_KEY:
-      process.env.SUPABASE_ANON_KEY ??
-      fileEnv.SUPABASE_ANON_KEY ??
-      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
-      fileEnv.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
-    SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY ?? fileEnv.SUPABASE_SERVICE_ROLE_KEY,
-    SUPABASE_PROJECT_ID: process.env.SUPABASE_PROJECT_ID ?? fileEnv.SUPABASE_PROJECT_ID,
   },
   transpilePackages: ['@opshub/types', '@opshub/utils', '@opshub/ui', '@opshub/auth'],
 };
