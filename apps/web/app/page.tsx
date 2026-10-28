@@ -82,10 +82,10 @@ export default function HomePage() {
 
   return (
     <main className="shell">
-      <p className="eyebrow">OPSHUB / PHASE 0</p>
+      <p className="eyebrow">OPSHUB MARKETPLACE</p>
       <h1>Private trade, built on trust.</h1>
       <p className="intro">
-        The OpsHub foundation is ready for the verified seller and reseller marketplace.
+        Connect with verified sellers and resellers. Manage your products, orders and customers in one place.
       </p>
 
       {checkingAuth ? (
@@ -101,12 +101,15 @@ export default function HomePage() {
           <Link href="/auth/register" className="secondary-link" style={{ display: 'inline-block', padding: '0.75rem 1.1rem', borderRadius: '0.75rem', border: '1px solid #d1d5db', color: '#111827', textDecoration: 'none' }}>
             Become a seller
           </Link>
+          <Link href="/auth/customer/login" className="secondary-link" style={{ display: 'inline-block', padding: '0.75rem 1.1rem', borderRadius: '0.75rem', border: '1px solid #d1d5db', color: '#111827', textDecoration: 'none' }}>
+            Customer login
+          </Link>
         </div>
       )}
 
       <div className="status" role="status" style={{ marginTop: '1.5rem' }}>
         <span className="status-dot" aria-hidden="true" />
-        Foundation online
+        Independent seller and customer accounts
       </div>
     </main>
   );

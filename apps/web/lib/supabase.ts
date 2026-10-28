@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { createBrowserClient } from '@supabase/ssr';
 import { resolveSupabasePublicKey, resolveSupabaseUrl } from './supabase-env';
 
 // Public browser client configuration only. Never import SUPABASE_SERVICE_ROLE_KEY here.
@@ -8,11 +8,6 @@ export function getSupabaseBrowserClient() {
   const url = resolveSupabaseUrl();
   const publicKey = resolveSupabasePublicKey();
 
-  return createClient(url, publicKey, {
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-      detectSessionInUrl: true,
-    },
-  });
+  // Share cookie storage with server-rendered admin pages and export routes.
+  return createBrowserClient(url, publicKey);
 }

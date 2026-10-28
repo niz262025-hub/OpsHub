@@ -14,9 +14,11 @@ export async function createSupabaseServerClient() {
         return cookieStore.getAll();
       },
       setAll(cookiesToSet) {
-        for (const cookie of cookiesToSet) {
-          cookieStore.set(cookie.name, cookie.value, cookie.options);
-        }
+        // Server Components cannot write cookies; middleware refreshes them
+        // before rendering. Route handlers can still persist their changes.
+        try {
+          for (const cookie of cookiesToSet) cookieStore.set(cookie.name, cookie.value, cookie.options);
+        } catch { /* Read-only Server Component cookie store. */ }
       },
     },
   });
