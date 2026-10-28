@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'OpsHub',
-  description: 'A foundation for the OpsHub marketplace and community.',
+  description: 'The independent marketplace for verified sellers, resellers and their customers.',
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
